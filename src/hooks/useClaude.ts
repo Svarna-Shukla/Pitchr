@@ -1,39 +1,11 @@
 import { useCallback, useRef, useState } from "react";
 import type { Slide } from "../types/slide";
+import { fetchGroqJSON } from "../lib/groq";
 
 const PROMPT = `Return ONE pitch deck slide as JSON only, no markdown:
-{"title":"...","bullets":["...","...","..."],"type":"problem|solution|market|traction|team|ask"}`;
+{"title":"...","bullets":["...","...","..."],"type":"problem|solution|market|traction|team|ask"}
 
-// Pulls a slide JSON object out of the response text
-function parseSlide(text: string): Slide | null {
-  const match = text.match(/\{[\s\S]*\}/);
-  if (!match) return null;
-  try {
-    return JSON.parse(match[0]) as Slide;
-  } catch {
-    return null;
-  }
-}
-
-// Calls Groq API (free, no credit card) and returns one parsed slide
-async function fetchSlide(chunk: string): Promise<Slide | null> {
-  const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${import.meta.env.VITE_GROQ_API_KEY}`,
-    },
-    body: JSON.stringify({
-      model: "llama-3.1-8b-instant",
-      max_tokens: 512,
-      messages: [{ role: "user", content: `${PROMPT}\n\nTranscript:\n${chunk}` }],
-    }),
-  });
-  if (!res.ok) return null;
-  const data = await res.json();
-  const text = data.choices?.[0]?.message?.content ?? "";
-  return parseSlide(text);
-}
+Transcript:`;
 
 // Manages slide generation queue
 export function useClaude() {
@@ -49,7 +21,7 @@ export function useClaude() {
     processing.current = true;
     setIsGenerating(true);
     const chunk = queue.current.shift()!;
-    const slide = await fetchSlide(chunk);
+    const slide = await fetchGroqJSON<Slide>(PROMPT, chunk);
     if (slide) setSlides((s) => [...s, slide]);
     processing.current = false;
     setIsGenerating(queue.current.length > 0);
@@ -95,5 +67,12 @@ export function useClaude() {
     queue.current = [];
   }, []);
 
-  return { slides, isGenerating, feedTranscript, flush, reset };
+  // Replaces the current deck with a previously saved one (used by Session Save)
+  const loadSlides = useCallback((saved: Slide[]) => {
+    queue.current = [];
+    sentIndex.current = 0;
+    setSlides(saved);
+  }, []);
+
+  return { slides, isGenerating, feedTranscript, flush, reset, loadSlides };
 }

@@ -9,5 +9,5 @@ body,
 
 body {
   background: #080808;
-  overflow: hidden;
+  overflow-x: hidden;
 }
