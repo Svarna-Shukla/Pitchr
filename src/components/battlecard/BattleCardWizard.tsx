@@ -1,6 +1,7 @@
 import type { useBattleCard } from "../../hooks/useBattleCard";
 import BattleCardStepFields from "./BattleCardStepFields";
 import type { Theme } from "../../hooks/useTheme";
+import Button from "../Button";
 
 type Props = { battleCard: ReturnType<typeof useBattleCard>; theme: Theme };
 
@@ -33,13 +34,9 @@ export default function BattleCardWizard({ battleCard, theme }: Props) {
         >
           Back
         </button>
-        <button
-          onClick={isLast ? generate : next}
-          disabled={isGenerating}
-          className="rounded-full bg-gradient-to-r from-purple-500 to-blue-500 px-5 py-2 text-sm font-semibold text-white disabled:opacity-50"
-        >
+        <Button onClick={isLast ? generate : next} disabled={isGenerating}>
           {isGenerating ? "Generating…" : isLast ? "Generate Cards" : "Next"}
-        </button>
+        </Button>
       </div>
     </div>
   );

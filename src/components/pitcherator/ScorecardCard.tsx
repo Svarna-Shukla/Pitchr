@@ -3,6 +3,7 @@ import { Wand2 } from "lucide-react";
 import type { Scorecard } from "../../types/pitcherator";
 import { overallScore, letterGrade } from "../../lib/scoring";
 import CopyButton from "../CopyButton";
+import Button from "../Button";
 
 type Props = { scorecard: Scorecard; onGenerateImprovedDeck: () => void };
 
@@ -26,13 +27,13 @@ export default function ScorecardCard({ scorecard, onGenerateImprovedDeck }: Pro
     scorecard.suggestions.map((s) => `- ${s}`).join("\n");
 
   return (
-    <div className="w-full max-w-md rounded-2xl border border-purple-500/30 bg-[#0f0f1a] p-6 shadow-2xl shadow-purple-500/20">
+    <div className="w-full max-w-md rounded-2xl border border-[color:var(--color-border-strong)] bg-[#0f0f1a] p-6 shadow-2xl">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-bold text-white">Your Scorecard</h3>
+          <h3 className="font-display text-lg font-semibold text-white">Your Scorecard</h3>
           <p className="text-sm text-white/50">
-            Overall <span className="font-bold text-purple-300">{total}/60</span>{" "}
-            <span className="font-bold text-purple-300">({grade})</span>
+            Overall <span className="font-bold text-[color:var(--color-accent)]">{total}/60</span>{" "}
+            <span className="font-bold text-[color:var(--color-accent)]">({grade})</span>
           </p>
         </div>
         <CopyButton getText={copyText} />
@@ -46,7 +47,7 @@ export default function ScorecardCard({ scorecard, onGenerateImprovedDeck }: Pro
             </div>
             <div className="mt-1 h-2 rounded-full bg-white/10">
               <motion.div
-                className="h-2 rounded-full bg-gradient-to-r from-purple-500 to-blue-400"
+                className="h-2 rounded-full bg-[color:var(--color-accent)]"
                 initial={{ width: 0 }}
                 animate={{ width: `${scorecard.ratings[l.key] * 10}%` }}
                 transition={{ duration: 0.6 }}
@@ -63,12 +64,9 @@ export default function ScorecardCard({ scorecard, onGenerateImprovedDeck }: Pro
           </li>
         ))}
       </ul>
-      <button
-        onClick={onGenerateImprovedDeck}
-        className="mt-5 flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:brightness-110"
-      >
+      <Button onClick={onGenerateImprovedDeck} className="mt-5 w-full">
         <Wand2 className="h-4 w-4" /> Generate Improved Deck
-      </button>
+      </Button>
     </div>
   );
 }

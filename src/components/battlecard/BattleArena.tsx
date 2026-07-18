@@ -2,6 +2,7 @@ import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Swords } from "lucide-react";
 import type { BattleCard } from "../../types/battleCard";
+import Button from "../Button";
 
 type Props = { player: BattleCard; competitors: BattleCard[] };
 
@@ -28,13 +29,9 @@ export default function BattleArena({ player, competitors }: Props) {
 
   return (
     <div className="mt-8 flex flex-col items-center gap-4">
-      <button
-        onClick={handleBattle}
-        disabled={fighting}
-        className="flex items-center gap-2 rounded-full bg-gradient-to-r from-red-500 to-orange-500 px-6 py-2.5 text-sm font-bold text-white transition disabled:opacity-60"
-      >
+      <Button onClick={handleBattle} disabled={fighting}>
         <Swords className="h-4 w-4" /> {fighting ? "Battling…" : "Battle!"}
-      </button>
+      </Button>
 
       <AnimatePresence>
         {fighting && (

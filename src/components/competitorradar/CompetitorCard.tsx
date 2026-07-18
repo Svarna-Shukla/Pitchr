@@ -1,5 +1,6 @@
 import type { Competitor } from "../../types/competitor";
 import type { Theme } from "../../hooks/useTheme";
+import TiltCard from "../TiltCard";
 
 type Props = { competitor: Competitor; theme: Theme };
 
@@ -15,7 +16,8 @@ export default function CompetitorCard({ competitor, theme }: Props) {
   const isDark = theme === "dark";
 
   return (
-    <div
+    <TiltCard
+      maxTilt={4}
       className={`rounded-2xl border-l-4 p-5 shadow-xl ${cfg.border} ${isDark ? "bg-[#0f0f1a]" : "bg-white ring-1 ring-black/5"}`}
     >
       <div className="flex items-center justify-between gap-3">
@@ -29,6 +31,6 @@ export default function CompetitorCard({ competitor, theme }: Props) {
         <span className={`font-semibold ${isDark ? "text-white/70" : "text-black/60"}`}>Weakness: </span>
         {competitor.weakness}
       </p>
-    </div>
+    </TiltCard>
   );
 }

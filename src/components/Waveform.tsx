@@ -9,7 +9,7 @@ export default function Waveform({ levels, active }: Props) {
       {levels.map((level, i) => (
         <motion.div
           key={i}
-          className="w-1 rounded-full bg-gradient-to-t from-purple-500 to-blue-400"
+          className="w-1 rounded-full bg-[color:var(--color-accent)]"
           animate={{ height: active ? `${8 + level * 32}px` : "4px" }}
           transition={{ duration: 0.1 }}
         />

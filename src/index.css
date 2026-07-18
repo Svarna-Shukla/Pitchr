@@ -1,5 +1,29 @@
 @import "tailwindcss";
 
+@theme {
+  --color-bg: #0a0a0b;
+  --color-surface: #131316;
+  --color-surface-2: #18181c;
+  --color-border: #232327;
+  --color-border-strong: #2f2f34;
+  --color-accent: #f0a020;
+  --color-accent-strong: #ffb545;
+  --color-accent-soft: #f0a02022;
+  --color-text-primary: #f2f1ee;
+  --color-text-secondary: #a3a2a0;
+  --color-text-muted: #6b6a68;
+
+  --color-bg-light: #fafaf9;
+  --color-surface-light: #ffffff;
+  --color-border-light: #e7e5e2;
+  --color-text-primary-light: #17161a;
+  --color-text-secondary-light: #5c5b58;
+  --color-text-muted-light: #9c9a97;
+
+  --font-display: "Space Grotesk Variable", "Space Grotesk", sans-serif;
+  --font-sans: "Manrope Variable", "Manrope", sans-serif;
+}
+
 html,
 body,
 #root {
@@ -8,6 +32,35 @@ body,
 }
 
 body {
-  background: #080808;
+  background: var(--color-bg);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
   overflow-x: hidden;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
+}
+
+/* Fixed, extremely subtle grain layer — replaces glow-orb/particle decoration with real texture */
+.grain-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.05;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.vignette-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 50% 0%, transparent 40%, rgba(0, 0, 0, 0.45) 100%);
 }

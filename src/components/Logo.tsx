@@ -10,10 +10,8 @@ export default function Logo() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, ease: "easeOut" }}
     >
-      <Flame className="h-5 w-5 text-orange-400 drop-shadow-[0_0_8px_rgba(251,146,60,0.8)]" />
-      <h1 className="bg-gradient-to-r from-orange-400 to-purple-400 bg-clip-text text-2xl font-bold text-transparent">
-        Pitchr
-      </h1>
+      <Flame className="h-5 w-5 text-[color:var(--color-accent)]" />
+      <h1 className="font-display text-xl font-semibold tracking-tight text-[color:var(--color-text-primary)]">Pitchr</h1>
     </motion.div>
   );
 }

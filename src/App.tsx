@@ -1,6 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import BackgroundOrbs from "./components/BackgroundOrbs";
-import Particles from "./components/Particles";
 import NavBar, { type NavTab } from "./components/NavBar";
 import BottomBar from "./components/BottomBar";
 import DeckPage from "./components/deck/DeckPage";
@@ -139,10 +137,15 @@ export default function App() {
     setFinished(false);
   };
 
+  const isDark = themeState.theme === "dark";
+
   return (
-    <div className="relative flex h-full w-full flex-col overflow-y-auto md:h-screen md:overflow-hidden">
-      <BackgroundOrbs recording={speech.isListening} theme={themeState.theme} />
-      <Particles theme={themeState.theme} />
+    <div
+      className="relative flex h-full w-full flex-col overflow-y-auto transition-colors duration-500 md:h-screen md:overflow-hidden"
+      style={{ background: isDark ? "var(--color-bg)" : "var(--color-bg-light)" }}
+    >
+      <div className="grain-layer" />
+      {isDark && <div className="vignette-layer" />}
       <NavBar activeTab={activeTab} onTabChange={handleTabChange} theme={themeState.theme} onToggleTheme={themeState.toggle} />
 
       <div className="relative z-10 flex-1 pt-20">

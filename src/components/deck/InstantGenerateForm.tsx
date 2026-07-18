@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Sparkles } from "lucide-react";
 import type { Theme } from "../../hooks/useTheme";
+import Button from "../Button";
 
 type Props = { onGenerate: (text: string) => void; disabled: boolean; theme: Theme };
 
@@ -25,17 +26,13 @@ export default function InstantGenerateForm({ onGenerate, disabled, theme }: Pro
         rows={3}
         className={`w-full resize-none rounded-xl border p-4 text-sm outline-none transition ${
           isDark
-            ? "border-white/10 bg-white/5 text-white placeholder:text-white/30 focus:border-purple-400/50"
-            : "border-black/10 bg-black/[0.02] text-black placeholder:text-black/30 focus:border-purple-500/50"
+            ? "border-white/10 bg-white/5 text-white placeholder:text-white/30 focus:border-[color:var(--color-accent)]/50"
+            : "border-black/10 bg-black/[0.02] text-black placeholder:text-black/30 focus:border-[color:var(--color-accent)]/50"
         }`}
       />
-      <button
-        onClick={handleSubmit}
-        disabled={disabled || !text.trim()}
-        className="flex items-center gap-2 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 px-6 py-2.5 text-sm font-semibold text-white transition disabled:cursor-not-allowed disabled:opacity-40"
-      >
+      <Button onClick={handleSubmit} disabled={disabled || !text.trim()}>
         <Sparkles className="h-4 w-4" /> Generate Deck
-      </button>
+      </Button>
     </div>
   );
 }

@@ -1,6 +1,10 @@
-import { useEffect, useRef } from "react";
+import { lazy, Suspense, useEffect, useRef } from "react";
+import { motion } from "framer-motion";
 import Headline from "../Headline";
 import Subtitle from "../Subtitle";
+import { revealOnScroll } from "../../lib/motion";
+
+const DeckScene3D = lazy(() => import("./DeckScene3D"));
 import VoiceRecorderPanel from "./VoiceRecorderPanel";
 import InstantGenerateForm from "./InstantGenerateForm";
 import DeckDivider from "./DeckDivider";
@@ -42,6 +46,11 @@ export default function DeckPage(props: Props) {
       <section className="flex flex-col items-center pt-4">
         <Headline theme={props.theme} />
         <Subtitle theme={props.theme} />
+        <div className="h-64 w-full max-w-md md:h-72">
+          <Suspense fallback={null}>
+            <DeckScene3D />
+          </Suspense>
+        </div>
         <VoiceRecorderPanel
           isListening={props.isListening}
           onToggleRecord={props.onToggleRecord}
@@ -62,14 +71,14 @@ export default function DeckPage(props: Props) {
         <div ref={deckRef}>
           <DeckDivider theme={props.theme} />
           <SlideDeckRow slides={props.slides} theme={props.theme} />
-          <div className="mt-8">
+          <motion.div className="mt-8" {...revealOnScroll}>
             <CompetitorRadarPanel
               competitors={props.competitors}
               isGenerating={props.isCompetitorsGenerating}
               failed={props.competitorsFailed}
               theme={props.theme}
             />
-          </div>
+          </motion.div>
         </div>
       )}
     </div>

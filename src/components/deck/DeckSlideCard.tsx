@@ -6,6 +6,7 @@ import { capBullets } from "../../lib/text";
 import SlideBullets from "../SlideBullets";
 import SlideVisual, { FULL_WIDTH_VISUAL_TYPES } from "./visuals/SlideVisual";
 import CopyButton from "../CopyButton";
+import TiltCard from "../TiltCard";
 
 type Props = { slide: Slide; index: number; total: number; theme: Theme };
 
@@ -19,14 +20,17 @@ export default function DeckSlideCard({ slide, index, total, theme }: Props) {
 
   return (
     <motion.div
-      className="relative aspect-video w-[560px] shrink-0 snap-start overflow-hidden rounded-2xl border p-8"
+      className="w-[560px] shrink-0 snap-start"
+      initial={{ opacity: 0, x: 30 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ type: "spring", stiffness: 120, damping: 18, delay: index * 0.08 }}
+    >
+    <TiltCard
+      className="aspect-video overflow-hidden rounded-2xl border p-8"
       style={{
         background: slideGradient(slide.type, isDark),
         borderColor: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)",
       }}
-      initial={{ opacity: 0, x: 30 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ type: "spring", stiffness: 120, damping: 18, delay: index * 0.08 }}
     >
       <div className="flex items-start justify-between">
         <span
@@ -38,7 +42,7 @@ export default function DeckSlideCard({ slide, index, total, theme }: Props) {
         <CopyButton getText={copyText} />
       </div>
 
-      <h3 className={`mt-4 max-w-[75%] text-2xl font-bold leading-tight ${isDark ? "text-white" : "text-[#111111]"}`}>
+      <h3 className={`mt-4 max-w-[75%] font-display text-2xl font-semibold leading-tight ${isDark ? "text-white" : "text-[#111111]"}`}>
         {slide.title}
       </h3>
 
@@ -65,6 +69,7 @@ export default function DeckSlideCard({ slide, index, total, theme }: Props) {
       >
         Pitchr
       </span>
+    </TiltCard>
     </motion.div>
   );
 }

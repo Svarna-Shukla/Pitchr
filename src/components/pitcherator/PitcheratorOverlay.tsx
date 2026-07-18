@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 import type { usePitcherator } from "../../hooks/usePitcherator";
 import { useSpeech } from "../../hooks/useSpeech";
@@ -37,25 +37,37 @@ export default function PitcheratorOverlay({ pitcherator, onClose, onGenerateImp
         <X className="h-6 w-6" />
       </button>
 
-      {failed && <p className="text-sm text-red-400">Something went wrong generating that — try again.</p>}
+      <div style={{ perspective: "1200px" }}>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={failed ? "failed" : stage}
+            initial={{ opacity: 0, rotateX: -14, y: 12 }}
+            animate={{ opacity: 1, rotateX: 0, y: 0 }}
+            exit={{ opacity: 0, rotateX: 10 }}
+            transition={{ type: "spring", stiffness: 160, damping: 20 }}
+          >
+            {failed && <p className="text-sm text-red-400">Something went wrong generating that — try again.</p>}
 
-      {!failed && stage === "asking" && (
-        <QuestionView
-          question={questions[currentQuestionIndex]}
-          index={currentQuestionIndex}
-          total={questions.length}
-          isRecording={speech.isListening}
-          liveAnswer={speech.transcript}
-          onToggleRecord={handleToggleRecord}
-          onSubmitText={pitcherator.submitAnswer}
-        />
-      )}
+            {!failed && stage === "asking" && (
+              <QuestionView
+                question={questions[currentQuestionIndex]}
+                index={currentQuestionIndex}
+                total={questions.length}
+                isRecording={speech.isListening}
+                liveAnswer={speech.transcript}
+                onToggleRecord={handleToggleRecord}
+                onSubmitText={pitcherator.submitAnswer}
+              />
+            )}
 
-      {!failed && stage === "generating-scorecard" && <p className="text-sm text-white/60">Scoring your pitch…</p>}
+            {!failed && stage === "generating-scorecard" && <p className="text-sm text-white/60">Scoring your pitch…</p>}
 
-      {!failed && stage === "scorecard" && scorecard && (
-        <ScorecardCard scorecard={scorecard} onGenerateImprovedDeck={onGenerateImprovedDeck} />
-      )}
+            {!failed && stage === "scorecard" && scorecard && (
+              <ScorecardCard scorecard={scorecard} onGenerateImprovedDeck={onGenerateImprovedDeck} />
+            )}
+          </motion.div>
+        </AnimatePresence>
+      </div>
     </motion.div>
   );
 }

@@ -24,3 +24,6 @@ export default function SlideBullets({ bullets, color, textClass }: Props) {
     </ul>
   );
 }
+
+
+// displays the bullet points of the slides

@@ -13,7 +13,7 @@ type Props = {
   onClear: () => void;
 };
 
-// Floating glassmorphism bar with quick actions: Pitcherator, Present, Export, Sessions, Clear
+// Floating action bar with quick actions: Pitcherator, Present, Export, Sessions, Clear
 export default function BottomBar({
   hasSlides,
   pitcheratorActive,
@@ -26,29 +26,38 @@ export default function BottomBar({
   onClear,
 }: Props) {
   const isDark = theme === "dark";
-  const idle = isDark ? "text-white/70 hover:bg-white/10" : "text-black/60 hover:bg-black/5";
-  const base = `flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-semibold transition disabled:cursor-not-allowed disabled:opacity-30 ${idle}`;
+  const textColor = isDark ? "var(--color-text-secondary)" : "var(--color-text-secondary-light)";
+  const base = "flex items-center gap-1.5 rounded-md px-3.5 py-2 text-xs font-semibold transition disabled:cursor-not-allowed disabled:opacity-30 hover:text-[color:var(--color-accent)]";
+  const divider = <span className="h-4 w-px" style={{ background: isDark ? "var(--color-border)" : "var(--color-border-light)" }} />;
 
   return (
     <div className="fixed inset-x-0 bottom-4 z-30 flex justify-center px-4">
       <div
-        className={`flex flex-wrap items-center justify-center gap-2 rounded-full border px-3 py-2 backdrop-blur-xl ${
-          isDark ? "border-white/10 bg-white/5" : "border-black/10 bg-white/70"
-        }`}
+        className="flex flex-wrap items-center justify-center gap-1 rounded-xl border px-2 py-1.5 shadow-2xl"
+        style={{
+          borderColor: isDark ? "var(--color-border)" : "var(--color-border-light)",
+          background: isDark ? "var(--color-surface)" : "var(--color-surface-light)",
+        }}
       >
-        <button onClick={onPitcherator} className={`${base} ${pitcheratorActive ? "bg-red-500/20 text-red-400" : ""}`}>
+        <button
+          onClick={onPitcherator}
+          className={base}
+          style={{ color: pitcheratorActive ? "var(--color-accent)" : textColor }}
+        >
           <Zap className="h-4 w-4" /> Pitcherator
         </button>
-        <button onClick={onPresent} disabled={!hasSlides} className={base}>
+        {divider}
+        <button onClick={onPresent} disabled={!hasSlides} className={base} style={{ color: textColor }}>
           <Play className="h-4 w-4" /> Present
         </button>
-        <button onClick={onExport} disabled={!hasSlides || exporting} className={base}>
+        <button onClick={onExport} disabled={!hasSlides || exporting} className={base} style={{ color: textColor }}>
           <Download className="h-4 w-4" /> {exporting ? "Exporting…" : "Export"}
         </button>
-        <button onClick={onSessions} className={base}>
+        {divider}
+        <button onClick={onSessions} className={base} style={{ color: textColor }}>
           <History className="h-4 w-4" /> Sessions
         </button>
-        <button onClick={onClear} className={base}>
+        <button onClick={onClear} className={base} style={{ color: textColor }}>
           <RotateCcw className="h-4 w-4" /> Clear
         </button>
       </div>

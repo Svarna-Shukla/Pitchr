@@ -27,7 +27,7 @@ export default function PresentationSlide({ slide, direction, theme }: Props) {
       >
         {slideLabel(slide.type)}
       </span>
-      <h2 className={`mt-8 text-6xl font-bold leading-tight ${isDark ? "text-white" : "text-[#111111]"}`}>{slide.title}</h2>
+      <h2 className={`mt-8 font-display text-6xl font-semibold leading-tight ${isDark ? "text-white" : "text-[#111111]"}`}>{slide.title}</h2>
       <div className="mt-12 [&_ul]:items-center [&_li]:justify-center [&_li]:text-2xl">
         <SlideBullets bullets={bullets} color={color} textClass={isDark ? "text-white/80" : "text-[#333333]"} />
       </div>

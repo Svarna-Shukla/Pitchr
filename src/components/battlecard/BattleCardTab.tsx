@@ -13,7 +13,7 @@ export default function BattleCardTab({ theme }: Props) {
 
   return (
     <div className="mx-auto max-w-4xl px-6 pb-28 pt-8">
-      <h2 className={`mb-6 text-center text-lg font-bold ${isDark ? "text-white" : "text-black"}`}>Battle Card</h2>
+      <h2 className={`mb-6 text-center font-display text-lg font-semibold ${isDark ? "text-white" : "text-black"}`}>Battle Card</h2>
 
       {!battleCard.player ? (
         <BattleCardWizard battleCard={battleCard} theme={theme} />

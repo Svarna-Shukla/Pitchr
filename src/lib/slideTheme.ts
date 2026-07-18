@@ -52,10 +52,10 @@ export function hexToRgb(hex: string): [number, number, number] {
   return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
 }
 
-// Builds a per-type CSS gradient background for a slide card, tuned per theme
+// Builds a per-type CSS gradient background for a slide card, tuned per theme — a restrained wash, not a neon glow
 export function slideGradient(type: string, isDark: boolean): string {
   const hex = slideColor(type);
   return isDark
-    ? `linear-gradient(135deg, ${hex}3d 0%, #0b0b12 70%)`
-    : `linear-gradient(135deg, ${hex}26 0%, #ffffff 70%)`;
+    ? `linear-gradient(135deg, ${hex}22 0%, #131316 70%)`
+    : `linear-gradient(135deg, ${hex}17 0%, #ffffff 70%)`;
 }
