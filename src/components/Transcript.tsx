@@ -2,14 +2,14 @@ import { motion } from "framer-motion";
 
 type Props = { text: string; isListening: boolean };
 
-// Displays the live speech transcript with each word fading in as it is spoken
+// Displays the live speech transcript, word by word, inside a bordered scrollable box
 export default function Transcript({ text, isListening }: Props) {
   const words = text ? text.split(/\s+/) : [];
   if (!words.length && !isListening) return null;
 
   return (
     <motion.div
-      className="mt-6 max-w-md text-center text-sm leading-relaxed text-white/70"
+      className="mt-6 max-h-40 w-full max-w-md overflow-y-auto rounded-xl border border-white/10 p-4 text-center text-sm leading-relaxed text-white/70"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
     >

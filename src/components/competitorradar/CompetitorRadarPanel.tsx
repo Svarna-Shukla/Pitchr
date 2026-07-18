@@ -11,8 +11,8 @@ export default function CompetitorRadarPanel({ competitors, isGenerating, failed
 
   return (
     <div className="flex flex-col gap-3">
-      <p className="text-xs text-white/40">Based on the AI's own knowledge, not a live search.</p>
-      {competitors.map((c, i) => (
+      <p className="text-xs text-white/40">Inferred from the pitch — no live web search.</p>
+      {competitors.slice(0, 4).map((c, i) => (
         <CompetitorCard key={`${c.name}-${i}`} competitor={c} />
       ))}
     </div>

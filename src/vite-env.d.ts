@@ -1,5 +1,6 @@
 /// <reference types="vite/client" />
 
+// Tells TypeScript exactly what environment variables to expect so we get nice autocomplete
 interface ImportMetaEnv {
   readonly VITE_GROQ_API_KEY: string;
 }

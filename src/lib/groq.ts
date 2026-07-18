@@ -1,9 +1,12 @@
 const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
 const MODEL = "llama-3.1-8b-instant";
 
-// Pulls the first JSON object or array out of a response string
+let warnedMissingKey = false;
+
+// Pulls the first JSON object or array out of a response string, stripping any ```json fences first
 function extractJson(text: string): string | null {
-  const match = text.match(/\{[\s\S]*\}|\[[\s\S]*\]/);
+  const stripped = text.replace(/```json|```/g, "");
+  const match = stripped.match(/\{[\s\S]*\}|\[[\s\S]*\]/);
   return match ? match[0] : null;
 }
 
@@ -13,12 +16,20 @@ export async function fetchGroqJSON<T>(
   userContent: string,
   maxTokens = 512
 ): Promise<T | null> {
+  const apiKey = import.meta.env.VITE_GROQ_API_KEY;
+  if (!apiKey) {
+    if (!warnedMissingKey) {
+      console.warn("VITE_GROQ_API_KEY is not set — copy .env.example to .env and add your Groq key.");
+      warnedMissingKey = true;
+    }
+    return null;
+  }
   try {
     const res = await fetch(GROQ_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${import.meta.env.VITE_GROQ_API_KEY}`,
+        Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
         model: MODEL,

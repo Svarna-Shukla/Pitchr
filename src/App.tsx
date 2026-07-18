@@ -5,6 +5,7 @@ import NavBar from "./components/NavBar";
 import BottomBar from "./components/BottomBar";
 import LeftColumn from "./components/layout/LeftColumn";
 import SidePanel from "./components/panel/SidePanel";
+import ErrorBoundary from "./components/ErrorBoundary";
 import PitcheratorOverlay from "./components/pitcherator/PitcheratorOverlay";
 import PresentationMode from "./components/presentation/PresentationMode";
 import SessionsPanel from "./components/sessions/SessionsPanel";
@@ -15,6 +16,7 @@ import { useFounderKit } from "./hooks/useFounderKit";
 import { useCompetitorRadar } from "./hooks/useCompetitorRadar";
 import { usePitcherator } from "./hooks/usePitcherator";
 import { useSessions } from "./hooks/useSessions";
+import { useTheme } from "./hooks/useTheme";
 import { exportSlidesToPdf } from "./lib/exportPdf";
 import type { SessionRecord } from "./types/session";
 
@@ -27,6 +29,7 @@ export default function App() {
   const competitorRadar = useCompetitorRadar();
   const pitcherator = usePitcherator();
   const sessions = useSessions();
+  const themeState = useTheme();
 
   const [finished, setFinished] = useState(false);
   const [showPresentation, setShowPresentation] = useState(false);
@@ -96,6 +99,20 @@ export default function App() {
     setShowSessions(false);
   };
 
+  // Resets every panel and the recording state so the user can start a fresh pitch
+  const handleClear = () => {
+    if (speech.isListening) {
+      speech.stop();
+      audio.stop();
+    }
+    claude.reset();
+    founderKit.reset();
+    competitorRadar.reset();
+    pitcherator.reset();
+    savedRef.current = false;
+    setFinished(false);
+  };
+
   return (
     <div className="relative flex h-full w-full flex-col overflow-y-auto md:h-screen md:flex-row md:overflow-hidden">
       <BackgroundOrbs recording={speech.isListening} />
@@ -113,17 +130,22 @@ export default function App() {
           onPitcherator={handlePitcherator}
         />
         {claude.slides.length > 0 && (
-          <SidePanel
-            slides={claude.slides}
-            founderKit={founderKit.founderKit}
-            isFounderKitGenerating={founderKit.isGenerating}
-            founderKitFailed={founderKit.failed}
-            onOpenFounderKit={handleOpenFounderKit}
-            competitors={competitorRadar.competitors}
-            isCompetitorsGenerating={competitorRadar.isGenerating}
-            competitorsFailed={competitorRadar.failed}
-            onOpenCompetitorRadar={handleOpenCompetitorRadar}
-          />
+          <ErrorBoundary fallback={<p className="p-6 text-sm text-red-400">Something went wrong rendering this panel — try Clear and start again.</p>}>
+            <SidePanel
+              slides={claude.slides}
+              theme={themeState.theme}
+              onToggleTheme={themeState.toggle}
+              onClear={handleClear}
+              founderKit={founderKit.founderKit}
+              isFounderKitGenerating={founderKit.isGenerating}
+              founderKitFailed={founderKit.failed}
+              onOpenFounderKit={handleOpenFounderKit}
+              competitors={competitorRadar.competitors}
+              isCompetitorsGenerating={competitorRadar.isGenerating}
+              competitorsFailed={competitorRadar.failed}
+              onOpenCompetitorRadar={handleOpenCompetitorRadar}
+            />
+          </ErrorBoundary>
         )}
       </div>
 
@@ -141,7 +163,7 @@ export default function App() {
         <PitcheratorOverlay pitcherator={pitcherator} speech={speech} onClose={pitcherator.reset} />
       )}
       {showPresentation && (
-        <PresentationMode slides={claude.slides} onClose={() => setShowPresentation(false)} />
+        <PresentationMode slides={claude.slides} theme={themeState.theme} onClose={() => setShowPresentation(false)} />
       )}
       {showSessions && (
         <SessionsPanel sessions={sessions.sessions} onLoad={handleLoadSession} onClose={() => setShowSessions(false)} />

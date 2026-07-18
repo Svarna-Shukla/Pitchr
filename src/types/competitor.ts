@@ -6,6 +6,3 @@ export type Competitor = {
   weakness: string;
   threat: ThreatLevel;
 };
-
-
-// research competitors

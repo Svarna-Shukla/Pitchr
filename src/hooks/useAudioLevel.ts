@@ -1,5 +1,6 @@
 import { useCallback, useRef, useState } from "react";
 
+// The number of bars we want to display in our frontend audio waveform UI
 const BAR_COUNT = 24;
 
 // Captures live mic input and exposes normalized bar levels for a waveform visualizer
@@ -54,3 +55,5 @@ export function useAudioLevel() {
 
   return { levels, start, stop };
 }
+
+// This hook builds the animated microphone waveform for the "Live Deck Build" feature, turning the founder's 3 AM voice notes into clean UI visualizer bars.
