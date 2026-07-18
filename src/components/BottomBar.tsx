@@ -23,7 +23,7 @@ export default function BottomBar({
 }: Props) {
   const isDark = theme === "dark";
   const textColor = isDark ? "var(--color-text-secondary)" : "var(--color-text-secondary-light)";
-  const base = "flex items-center gap-1.5 rounded-md px-3.5 py-2 text-xs font-semibold transition disabled:cursor-not-allowed disabled:opacity-30 hover:text-[color:var(--color-accent)]";
+  const base = "flex min-h-11 items-center gap-1.5 rounded-md px-3.5 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-30 hover:text-[color:var(--color-accent)]";
   const divider = <span className="h-4 w-px" style={{ background: isDark ? "var(--color-border)" : "var(--color-border-light)" }} />;
 
   return (

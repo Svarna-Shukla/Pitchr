@@ -1,51 +1,82 @@
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
+import type { AnswerTier } from "../types/arena";
 
 const MAX_HEALTH = 100;
-const STRONG_PITCH_GAIN = 8;
-const WEAK_PITCH_LOSS = 18;
-const MIN_INVESTOR_DAMAGE = 15;
-const MAX_INVESTOR_DAMAGE = 34;
-const STRENGTH_MIDPOINT = (MIN_INVESTOR_DAMAGE + MAX_INVESTOR_DAMAGE) / 2;
-const EVIDENCE_KEYWORDS = ["data", "users", "revenue", "growth", "customers", "%", "traction", "proof"];
+const START_HEALTH = 100;
+const DELTAS: Record<AnswerTier, number> = { strong: 5, average: -10, weak: -20, timeout: -30 };
+const STREAK_BONUS = 15;
+const CRITICAL_PENALTY = -40;
+const STREAK_LENGTH = 3;
 
-// Cheap, dependency-free proxy for answer strength: longer, more evidence-backed answers hit harder.
-// This never touches the network — the real 6-metric grade still comes from one Groq call at the end.
-function estimateAnswerStrength(answer: string): number {
-  const words = answer.trim().split(/\s+/).filter(Boolean).length;
-  const lower = answer.toLowerCase();
-  const evidenceHits = EVIDENCE_KEYWORDS.filter((kw) => lower.includes(kw)).length;
-  const raw = words * 1.2 + evidenceHits * 4;
-  return Math.min(MAX_INVESTOR_DAMAGE, Math.max(MIN_INVESTOR_DAMAGE, raw));
-}
+export type StreakEvent = { type: "fire" | "critical"; key: number } | null;
 
-// Classifies a founder's answer as a strong or weak defense, driving the mask's judgment reaction
-export function classifyAnswer(answer: string): "strong" | "weak" {
-  return estimateAnswerStrength(answer) >= STRENGTH_MIDPOINT ? "strong" : "weak";
-}
-
-// Tracks both fighters' health bars: the investor's (worn down by strong answers) and the founder's
-// pitch health (rises on strong answers, drops on weak ones)
+// Tracks the founder's single "YOUR PITCH" health bar (100 -> 0, never higher/lower) plus the streak
+// machine: 3 strong answers in a row grants a bonus and fires "ON FIRE"; 3 weak/timeout answers in a
+// row arms a "CRITICAL" flag that turns the very next round's damage into a flat -40, whatever its tier
 export function useArenaHealth() {
-  const [investorHealth, setInvestorHealth] = useState(MAX_HEALTH);
-  const [founderHealth, setFounderHealth] = useState(MAX_HEALTH);
+  const [health, setHealthState] = useState(START_HEALTH);
+  const [streakEvent, setStreakEvent] = useState<StreakEvent>(null);
+  const healthRef = useRef(START_HEALTH);
+  const strongStreak = useRef(0);
+  const weakStreak = useRef(0);
+  const criticalArmed = useRef(false);
+  const eventKey = useRef(0);
 
-  // Applied once the founder's answer to a round is judged
-  const judge = useCallback((answer: string) => {
-    const outcome = classifyAnswer(answer);
-    if (outcome === "strong") {
-      setInvestorHealth((h) => Math.max(0, h - estimateAnswerStrength(answer)));
-      setFounderHealth((h) => Math.min(MAX_HEALTH, h + STRONG_PITCH_GAIN));
-    } else {
-      setFounderHealth((h) => Math.max(0, h - WEAK_PITCH_LOSS));
-    }
-    return outcome;
+  // Keeps both the ref (read synchronously below) and the render-triggering state in sync
+  const setHealth = useCallback((v: number) => {
+    healthRef.current = v;
+    setHealthState(v);
   }, []);
 
-  // Resets both bars to full for a fresh battle
+  // Applies one round's result to the health bar, running the streak machine first, then clamps to
+  // [0,100] and returns the resulting health so the caller can immediately check for game over
+  const applyResult = useCallback(
+    (tier: AnswerTier) => {
+      let delta = DELTAS[tier];
+
+      if (criticalArmed.current) {
+        delta = CRITICAL_PENALTY;
+        criticalArmed.current = false;
+        strongStreak.current = 0;
+        weakStreak.current = 0;
+      } else if (tier === "strong") {
+        weakStreak.current = 0;
+        strongStreak.current += 1;
+        if (strongStreak.current >= STREAK_LENGTH) {
+          delta += STREAK_BONUS;
+          strongStreak.current = 0;
+          eventKey.current += 1;
+          setStreakEvent({ type: "fire", key: eventKey.current });
+        }
+      } else if (tier === "weak" || tier === "timeout") {
+        strongStreak.current = 0;
+        weakStreak.current += 1;
+        if (weakStreak.current >= STREAK_LENGTH) {
+          weakStreak.current = 0;
+          criticalArmed.current = true;
+          eventKey.current += 1;
+          setStreakEvent({ type: "critical", key: eventKey.current });
+        }
+      } else {
+        strongStreak.current = 0;
+        weakStreak.current = 0;
+      }
+
+      const next = Math.max(0, Math.min(MAX_HEALTH, healthRef.current + delta));
+      setHealth(next);
+      return next;
+    },
+    [setHealth]
+  );
+
+  // Resets health and every streak counter for a fresh session
   const reset = useCallback(() => {
-    setInvestorHealth(MAX_HEALTH);
-    setFounderHealth(MAX_HEALTH);
-  }, []);
+    setHealth(START_HEALTH);
+    setStreakEvent(null);
+    strongStreak.current = 0;
+    weakStreak.current = 0;
+    criticalArmed.current = false;
+  }, [setHealth]);
 
-  return { investorHealth, founderHealth, judge, reset };
+  return { health, streakEvent, applyResult, reset, isGameOver: health <= 0 };
 }

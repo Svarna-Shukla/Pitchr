@@ -6,11 +6,12 @@ import Transcript from "../Transcript";
 import { useSpeech } from "../../hooks/useSpeech";
 import ResponseTimer from "./ResponseTimer";
 
-type Props = { visible: boolean; onSubmitAnswer: (text: string) => void };
+type Props = { visible: boolean; onSubmitAnswer: (text: string, isTimeout?: boolean) => void };
 
 // The bottom response bar: a countdown strip, the hexagonal mic button, and a text field to
 // "...defend yourself". Owns its own isolated speech instance so it never clobbers the original pitch
-// transcript. Only fades in once the investor's question has finished typing out above.
+// transcript. Only fades in once the investor's question has finished typing out above. Fixed to the
+// bottom of the screen on mobile so it's always reachable without scrolling.
 export default function ResponseControls({ visible, onSubmitAnswer }: Props) {
   const speech = useSpeech();
   const [typed, setTyped] = useState("");
@@ -30,16 +31,16 @@ export default function ResponseControls({ visible, onSubmitAnswer }: Props) {
     onSubmitAnswer(typed.trim());
   };
 
-  // If the 60s window runs out, submit whatever answer text is currently available
+  // If the 60s window runs out, submit whatever answer text is currently available as a timeout
   const handleTimeout = () => {
     const text = typed.trim() || speech.transcript.trim();
     if (speech.isListening) speech.stop();
-    onSubmitAnswer(text);
+    onSubmitAnswer(text, true);
   };
 
   return (
     <motion.div
-      className="flex w-full flex-col items-center gap-3 px-6 pb-6"
+      className="fixed inset-x-0 bottom-0 z-[64] flex w-full flex-col items-center gap-3 bg-[#0a0a0a]/95 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur-md md:static md:bg-transparent md:px-6 md:pb-6 md:pt-0 md:backdrop-blur-none"
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: visible ? 1 : 0, y: visible ? 0 : 12 }}
       transition={{ duration: 0.4 }}

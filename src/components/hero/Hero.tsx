@@ -25,10 +25,10 @@ export default function Hero({ onStartPitching, onTypeInstead }: Props) {
       className="relative flex w-full flex-col items-center gap-8 px-6 pt-6 md:min-h-[600px] md:flex-row md:items-center md:justify-between md:gap-10 md:px-14 lg:px-20"
       style={{ background: "#fafafa" }}
     >
-      <div className="flex max-w-xl flex-col items-center text-center md:items-start md:text-left">
+      <div className="order-2 flex max-w-xl flex-col items-center text-center md:order-1 md:items-start md:text-left">
         <div className="overflow-hidden">
           <motion.h1
-            className="font-display text-[42px] font-bold leading-[1.05] tracking-tight sm:text-[56px] md:text-[72px]"
+            className="font-display text-[40px] font-bold leading-[1.05] tracking-tight sm:text-[56px] md:text-[72px]"
             style={{ color: TEXT_PRIMARY }}
             initial={{ y: "110%" }}
             animate={{ y: "0%" }}
@@ -56,7 +56,7 @@ export default function Hero({ onStartPitching, onTypeInstead }: Props) {
         >
           <button
             onClick={onStartPitching}
-            className="inline-flex items-center gap-2 rounded-full bg-[#111111] px-7 py-3.5 text-base font-semibold text-white transition hover:bg-black"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#111111] px-7 py-3.5 text-base font-semibold text-white transition hover:bg-black sm:w-auto"
           >
             Start Pitching <span aria-hidden>→</span>
           </button>
@@ -70,13 +70,13 @@ export default function Hero({ onStartPitching, onTypeInstead }: Props) {
         </motion.div>
 
         <motion.div
-          className="mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 md:justify-start"
+          className="mt-10 flex flex-col items-center gap-3 sm:flex-row sm:flex-wrap sm:gap-x-6 sm:gap-y-2 md:justify-start"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.6, delay: 0.75 }}
         >
           {STATS.map((s) => (
-            <div key={s.label} className="flex items-center gap-1.5 text-xs font-medium" style={{ color: TEXT_SECONDARY }}>
+            <div key={s.label} className="flex items-center gap-1.5 text-sm font-medium" style={{ color: TEXT_SECONDARY }}>
               <s.icon className="h-3.5 w-3.5" style={{ color: "#f97316" }} />
               {s.label}
             </div>
@@ -84,7 +84,7 @@ export default function Hero({ onStartPitching, onTypeInstead }: Props) {
         </motion.div>
       </div>
 
-      <div className="relative h-[300px] w-full max-w-sm md:h-[560px] md:max-w-none md:flex-1">
+      <div className="order-1 relative mx-auto h-[300px] w-[300px] md:order-2 md:mx-0 md:h-[560px] md:w-auto md:max-w-none md:flex-1">
         <Suspense fallback={<HeroScenePlaceholder />}>
           <HeroScene />
         </Suspense>

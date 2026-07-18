@@ -42,7 +42,7 @@ export default function App() {
   const [exporting, setExporting] = useState(false);
   const savedRef = useRef(false);
   const generatingDeckFromArena = useRef(false);
-  const deckLocked = arena.phase !== "scorecard";
+  const deckLocked = arena.phase !== "scorecard" || arena.isPartial;
 
   // Saves the finished deck to session history exactly once per Battle Arena run
   useEffect(() => {

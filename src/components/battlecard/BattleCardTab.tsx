@@ -20,13 +20,13 @@ export default function BattleCardTab({ theme }: Props) {
       ) : (
         <div className="flex flex-col items-center gap-8">
           <div>
-            <p className={`mb-2 text-center text-xs font-bold uppercase tracking-widest ${isDark ? "text-white/40" : "text-black/40"}`}>
+            <p className={`mb-2 text-center text-sm font-bold uppercase tracking-widest ${isDark ? "text-white/40" : "text-black/40"}`}>
               Your Card
             </p>
             <PokemonCard card={battleCard.player} accent="#8b5cf6" />
           </div>
           <div className="w-full">
-            <p className={`mb-3 text-center text-xs font-bold uppercase tracking-widest ${isDark ? "text-white/40" : "text-black/40"}`}>
+            <p className={`mb-3 text-center text-sm font-bold uppercase tracking-widest ${isDark ? "text-white/40" : "text-black/40"}`}>
               Competitors
             </p>
             <div className="flex flex-wrap justify-center gap-4">
@@ -36,7 +36,7 @@ export default function BattleCardTab({ theme }: Props) {
             </div>
           </div>
           <BattleArena player={battleCard.player} competitors={battleCard.competitors} />
-          <button onClick={battleCard.reset} className={`text-xs font-semibold underline ${isDark ? "text-white/40" : "text-black/40"}`}>
+          <button onClick={battleCard.reset} className={`min-h-11 text-sm font-semibold underline ${isDark ? "text-white/40" : "text-black/40"}`}>
             Start over
           </button>
         </div>

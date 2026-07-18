@@ -35,7 +35,7 @@ export default function NavBar({ activeTab, onTabChange, theme, onToggleTheme, d
 
   return (
     <motion.div
-      className="fixed inset-x-0 top-0 z-[60] flex items-center justify-between gap-4 border-b px-6 py-3"
+      className="fixed inset-x-0 top-0 z-[60] flex items-center justify-between gap-2 border-b px-3 py-2 sm:gap-4 sm:px-6 sm:py-3"
       style={{
         borderColor: isDark ? "var(--color-border)" : "var(--color-border-light)",
         background: isDark ? "var(--color-bg)" : "var(--color-bg-light)",
@@ -55,7 +55,7 @@ export default function NavBar({ activeTab, onTabChange, theme, onToggleTheme, d
         </span>
       </div>
 
-      <div className="relative flex items-center gap-1">
+      <div className="relative flex items-center gap-0.5 sm:gap-1">
         {TABS.map((tab) => {
           const Icon = tab.icon;
           const active = tab.id === activeTab;
@@ -64,7 +64,7 @@ export default function NavBar({ activeTab, onTabChange, theme, onToggleTheme, d
             <button
               key={tab.id}
               onClick={() => !locked && onTabChange(tab.id)}
-              className={`relative flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
+              className={`relative flex min-h-11 items-center gap-1.5 rounded-lg px-2.5 py-2 text-sm font-semibold transition sm:px-3 sm:py-1.5 ${
                 locked ? "pointer-events-none opacity-40" : ""
               }`}
               style={{ color: active ? "var(--color-accent)" : isDark ? "var(--color-text-secondary)" : "var(--color-text-secondary-light)" }}

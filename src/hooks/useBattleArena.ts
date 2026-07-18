@@ -1,26 +1,36 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { MaskState } from "../components/arena/mask/ArenaMask";
-import type { ArenaRound, BattlePhase } from "../types/arena";
+import type { AnswerTier, ArenaRound, BattlePhase } from "../types/arena";
+import type { PersonalityConfig, PersonalityId } from "../types/investor";
+import { getPersonality, pickVoiceLine } from "../lib/investorPersonalities";
 import { useArenaHealth } from "./useArenaHealth";
 import { usePitcherator } from "./usePitcherator";
+import { useSpeechSynthesis } from "./useSpeechSynthesis";
 
-const JUDGMENT_DISPLAY_MS = 1600;
+const JUDGMENT_DISPLAY_MS = 1800;
 const MIN_SCANNING_MS = 2000;
 const LOSING_THRESHOLD = 40;
-const STRONG_LINES = ["Decent.", "Not bad."];
-const WEAK_LINES = ["Pathetic.", "Is that all?"];
-// determines the quality of the answer given
 
-// Orchestrates the full Battle Arena experience: wraps usePitcherator's Groq-backed question/scorecard
-// generation with a presentation-facing phase machine, live health bars, the mask's current
-// personality state, and the completed Q&A rounds needed later to regenerate the deck.
+// Maps a judged answer tier to the mask's visual reaction state
+function tierToMaskState(tier: AnswerTier): MaskState {
+  if (tier === "strong") return "strong";
+  if (tier === "average") return "average";
+  return "weak";
+}
+
+// Orchestrates the endless Battle Arena: personality pick, pitch intake, then an unbounded
+// attack/response/judgment loop that only ends on 0 health (game over) or a voluntary "End Pitch"
 export function useBattleArena() {
   const pitcherator = usePitcherator();
   const health = useArenaHealth();
-  const [phase, setPhase] = useState<BattlePhase>("input");
+  const voice = useSpeechSynthesis();
+  const [phase, setPhase] = useState<BattlePhase>("personality-select");
+  const [personality, setPersonality] = useState<PersonalityConfig | null>(null);
   const [rounds, setRounds] = useState<ArenaRound[]>([]);
+  const [roundNumber, setRoundNumber] = useState(1);
   const [pitchTranscript, setPitchTranscript] = useState("");
-  const [lastOutcome, setLastOutcome] = useState<{ outcome: "strong" | "weak"; text: string } | null>(null);
+  const [lastResult, setLastResult] = useState<{ tier: AnswerTier; reaction: string } | null>(null);
+  const [isPartial, setIsPartial] = useState(false);
   const scanningReady = useRef(false);
   const attackTrigger = useRef(0);
 
@@ -38,7 +48,7 @@ export function useBattleArena() {
     return () => window.clearTimeout(timer);
   }, [phase, pitcherator.stage]);
 
-  // Once question generation succeeds (and the minimum scan time has passed), the first attack fires
+  // Once the opening question lands (and the minimum scan time has passed), the first attack fires
   useEffect(() => {
     if (pitcherator.stage === "asking" && phase === "scanning" && scanningReady.current) {
       attackTrigger.current += 1;
@@ -46,63 +56,93 @@ export function useBattleArena() {
     }
   }, [pitcherator.stage, phase]);
 
-  // Once the final scorecard is ready, reveal it regardless of which phase was mid-flight
+  // Once a (full or partial) scorecard is ready, reveal it
   useEffect(() => {
     if (pitcherator.stage === "scorecard" && phase !== "scorecard") setPhase("scorecard");
   }, [pitcherator.stage, phase]);
 
-  // If question generation fails, drop back to the input step so the founder can retry
+  // If the opening question fails to generate, drop back to intake so the founder can retry
   useEffect(() => {
     if (pitcherator.failed && phase === "scanning") setPhase("input");
   }, [pitcherator.failed, phase]);
 
+  // Picks the investor personality for this session and moves to pitch intake
+  const selectPersonality = useCallback((id: PersonalityId) => {
+    setPersonality(getPersonality(id));
+    setPhase("input");
+  }, []);
+
   // Kicks off a fresh battle from the founder's pitch transcript
   const submitPitch = useCallback(
     (transcript: string) => {
-      if (!transcript.trim()) return;
+      if (!transcript.trim() || !personality) return;
       setRounds([]);
-      setLastOutcome(null);
+      setRoundNumber(1);
+      setLastResult(null);
+      setIsPartial(false);
       setPitchTranscript(transcript);
       health.reset();
       setPhase("scanning");
-      pitcherator.start(transcript);
+      pitcherator.start(transcript, personality);
     },
-    [pitcherator, health]
+    [pitcherator, health, personality]
   );
 
   // Once the question has fully typed out, the mask stops "speaking" and listens for the answer
   const questionTypedOut = useCallback(() => setPhase("response"), []);
 
-  // Judges the founder's answer, updates both health bars, and either advances to the next attack or
-  // leaves the arena on "judgment" display until the final scorecard lands
+  // Judges the founder's answer (or a timeout), updates health/streaks, speaks the reaction, and either
+  // loops back to the next attack or ends the session on 0 health
   const submitAnswer = useCallback(
-    (text: string) => {
-      const question = pitcherator.questions[pitcherator.currentQuestionIndex] ?? "";
-      const outcome = health.judge(text);
-      setRounds((r) => [...r, { question, answer: text, outcome }]);
-      const lines = outcome === "strong" ? STRONG_LINES : WEAK_LINES;
-      setLastOutcome({ outcome, text: lines[Math.floor(Math.random() * lines.length)] });
+    async (text: string, isTimeout = false) => {
+      if (!personality) return;
+      const question = pitcherator.currentQuestion;
+      const nextRoundNumber = roundNumber + 1;
       setPhase("judgment");
-      const isLastRound = pitcherator.currentQuestionIndex >= pitcherator.questions.length - 1;
-      pitcherator.submitAnswer(text);
-      if (!isLastRound) {
+      setLastResult(null);
+      const result = await pitcherator.playRound(text, isTimeout, personality, rounds, nextRoundNumber);
+      if (!result) return;
+      const finalHealth = health.applyResult(result.tier);
+      const round: ArenaRound = { question, answer: isTimeout ? "" : text, tier: result.tier, reaction: result.reaction };
+      setRounds((r) => [...r, round]);
+      setLastResult({ tier: result.tier, reaction: result.reaction });
+      voice.speak(pickVoiceLine(personality, result.tier));
+      if (finalHealth <= 0) {
+        setPhase("gameover");
+      } else {
+        setRoundNumber(nextRoundNumber);
         window.setTimeout(() => {
           attackTrigger.current += 1;
           setPhase("attacking");
         }, JUDGMENT_DISPLAY_MS);
       }
     },
-    [pitcherator, health]
+    [pitcherator, health, personality, rounds, roundNumber, voice]
   );
 
-  // Flushes the battle entirely and returns to the pitch-intake step
+  // Voluntarily ends the pitch, generating the full scorecard from every round played
+  const endPitch = useCallback(() => {
+    setIsPartial(false);
+    pitcherator.generateScorecard(rounds);
+  }, [pitcherator, rounds]);
+
+  // Called from the game-over screen's "See What Went Wrong" — same scorecard, marked partial
+  const viewPartialResults = useCallback(() => {
+    setIsPartial(true);
+    pitcherator.generateScorecard(rounds);
+  }, [pitcherator, rounds]);
+
+  // Flushes the battle entirely and returns to the personality-select step
   const fightAgain = useCallback(() => {
     setRounds([]);
+    setRoundNumber(1);
     setPitchTranscript("");
-    setLastOutcome(null);
+    setLastResult(null);
+    setPersonality(null);
+    setIsPartial(false);
     health.reset();
     pitcherator.reset();
-    setPhase("input");
+    setPhase("personality-select");
   }, [pitcherator, health]);
 
   const maskState: MaskState =
@@ -111,29 +151,38 @@ export function useBattleArena() {
       : phase === "response"
         ? "listening"
         : phase === "judgment"
-          ? health.founderHealth < LOSING_THRESHOLD
+          ? health.health < LOSING_THRESHOLD
             ? "winning"
-            : (lastOutcome?.outcome ?? "idle")
+            : lastResult
+              ? tierToMaskState(lastResult.tier)
+              : "idle"
           : "idle";
 
   return {
     phase,
+    personality,
     rounds,
+    roundNumber,
     pitchTranscript,
-    currentQuestion: pitcherator.questions[pitcherator.currentQuestionIndex] ?? "",
-    roundNumber: pitcherator.currentQuestionIndex + 1,
-    totalRounds: pitcherator.questions.length || 3,
+    currentQuestion: pitcherator.currentQuestion,
     scorecard: pitcherator.scorecard,
+    isPartial,
     failed: pitcherator.failed,
-    investorHealth: health.investorHealth,
-    founderHealth: health.founderHealth,
-    isWinning: health.founderHealth < LOSING_THRESHOLD,
-    lastOutcome,
+    health: health.health,
+    streakEvent: health.streakEvent,
+    isLosing: health.health < LOSING_THRESHOLD,
+    lastResult,
     maskState,
+    maskIntensity: personality?.maskIntensity ?? 1,
     attackTrigger: attackTrigger.current,
+    voiceEnabled: voice.enabled,
+    toggleVoice: voice.toggle,
+    selectPersonality,
     submitPitch,
     questionTypedOut,
     submitAnswer,
+    endPitch,
+    viewPartialResults,
     fightAgain,
   };
 }

@@ -18,7 +18,7 @@ export default function ScoreMatrix({ ratings }: Props) {
     <div className="flex w-full max-w-md flex-col gap-3">
       {LABELS.map((l, i) => (
         <div key={l.key}>
-          <div className="flex justify-between text-xs text-white/60">
+          <div className="flex justify-between text-sm text-white/60">
             <span>{l.label}</span>
             <span>{ratings[l.key]}/10</span>
           </div>

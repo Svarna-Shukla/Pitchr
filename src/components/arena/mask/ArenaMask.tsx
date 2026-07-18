@@ -3,9 +3,9 @@ import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { buildMaskGeometries } from "../../../lib/maskGeometry";
 
-export type MaskState = "idle" | "speaking" | "listening" | "strong" | "weak" | "winning";
+export type MaskState = "idle" | "speaking" | "listening" | "strong" | "average" | "weak" | "winning" | "gameover";
 
-type Props = { state: MaskState };
+type Props = { state: MaskState; intensity?: number };
 
 // Per-state target pose: uniform scale, forward/back lean (z), head-tilt (rotation.z), eye glow
 // intensity + color mix toward white-hot, and how open the mouth slit is.
@@ -14,14 +14,30 @@ const TARGETS: Record<MaskState, { scale: number; z: number; tilt: number; eye: 
   speaking: { scale: 1.15, z: 0.35, tilt: 0, eye: 3.2, hot: 0.15, mouth: 0.7 },
   listening: { scale: 0.9, z: -0.15, tilt: 0, eye: 0.9, hot: 0, mouth: 0.05 },
   strong: { scale: 0.85, z: -0.25, tilt: 0, eye: 1.2, hot: 0, mouth: 0.2 },
+  average: { scale: 1.0, z: 0.05, tilt: 0.04, eye: 2.0, hot: 0.3, mouth: 0.45 },
   weak: { scale: 1.3, z: 0.45, tilt: 0.12, eye: 4, hot: 0.85, mouth: 1.1 },
   winning: { scale: 1.05, z: 0.1, tilt: 0, eye: 2.2, hot: 0.1, mouth: 0.35 },
+  gameover: { scale: 2.4, z: 1.6, tilt: 0, eye: 6, hot: 1, mouth: 1.4 },
 };
+
+// Blends a state's target pose toward idle by `intensity` (< 1 dampens the reaction, > 1 exaggerates
+// it) — this is how each investor personality's mask feels calmer or more volatile
+function scaleTarget(target: (typeof TARGETS)["idle"], intensity: number) {
+  const idle = TARGETS.idle;
+  return {
+    scale: idle.scale + (target.scale - idle.scale) * intensity,
+    z: idle.z + (target.z - idle.z) * intensity,
+    tilt: idle.tilt + (target.tilt - idle.tilt) * intensity,
+    eye: idle.eye + (target.eye - idle.eye) * intensity,
+    hot: idle.hot + (target.hot - idle.hot) * intensity,
+    mouth: idle.mouth + (target.mouth - idle.mouth) * intensity,
+  };
+}
 
 // The interrogation mask: a low-poly geometric skull/face — shattered charcoal shell over an orange
 // emissive backing, two glowing oval eye sockets, and a horizontal mouth slit that opens, closes, or
 // curls into a one-sided smirk depending on the current interrogation state.
-export default function ArenaMask({ state }: Props) {
+export default function ArenaMask({ state, intensity = 1 }: Props) {
   const { shell, backing, eyePositions, chin } = useMemo(() => buildMaskGeometries(), []);
   useEffect(() => () => { shell.dispose(); backing.dispose(); }, [shell, backing]);
 
@@ -33,7 +49,7 @@ export default function ArenaMask({ state }: Props) {
 
   useFrame((_, delta) => {
     if (!group.current) return;
-    const t = TARGETS[state];
+    const t = state === "idle" || state === "gameover" ? TARGETS[state] : scaleTarget(TARGETS[state], intensity);
     const lerp = Math.min(1, delta * 4.5);
     clock.current += delta;
     const idleSway = state === "idle" ? Math.sin(clock.current * 0.4) * 0.12 : 0;
@@ -47,7 +63,10 @@ export default function ArenaMask({ state }: Props) {
     group.current.rotation.z = THREE.MathUtils.lerp(group.current.rotation.z, t.tilt, lerp);
 
     if (mouth.current) {
-      const openPulse = state === "speaking" ? 1 + Math.sin(clock.current * 10) * 0.35 : 1;
+      // The mouth flaps while the mask is "talking": attacking with a question, or reacting to the
+      // founder's last answer (which is also when the spoken judgment line plays via Web Speech)
+      const isTalking = state === "speaking" || state === "strong" || state === "average" || state === "weak" || state === "winning";
+      const openPulse = isTalking ? 1 + Math.sin(clock.current * 10) * 0.35 : 1;
       const targetScaleY = t.mouth * openPulse;
       mouth.current.scale.y = THREE.MathUtils.lerp(mouth.current.scale.y, Math.max(0.06, targetScaleY), lerp);
       const targetTiltZ = state === "strong" || state === "winning" ? -0.35 : 0;

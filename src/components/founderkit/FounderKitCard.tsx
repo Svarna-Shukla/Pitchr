@@ -15,7 +15,7 @@ export default function FounderKitCard({ label, content, theme }: Props) {
       className={`rounded-2xl border p-5 ${isDark ? "border-white/10 bg-[#0f0f1a]" : "border-black/10 bg-white ring-1 ring-black/5"}`}
     >
       <div className="flex items-start justify-between gap-2">
-        <h4 className="text-xs font-bold uppercase tracking-widest text-[color:var(--color-accent)]">{label}</h4>
+        <h4 className="text-sm font-bold uppercase tracking-widest text-[color:var(--color-accent)]">{label}</h4>
         <CopyButton getText={() => text} />
       </div>
       {Array.isArray(content) ? (

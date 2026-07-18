@@ -19,7 +19,7 @@ export default function BattleCardWizard({ battleCard, theme }: Props) {
         isDark ? "border-white/10 bg-white/5" : "border-black/10 bg-white ring-1 ring-black/5"
       }`}
     >
-      <p className={`text-xs font-bold uppercase tracking-widest ${isDark ? "text-white/40" : "text-black/40"}`}>
+      <p className={`text-sm font-bold uppercase tracking-widest ${isDark ? "text-white/40" : "text-black/40"}`}>
         Step {step + 1} of {STEP_TITLES.length} — {STEP_TITLES[step]}
       </p>
       <div className="mt-4">
