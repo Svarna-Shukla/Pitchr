@@ -85,3 +85,16 @@ h4 {
     animation: none;
   }
 }
+
+/* Faint red hexagonal grid backing the Battle Arena, giving the "battleground" its floor pattern */
+.arena-hex-grid {
+  background-image: repeating-linear-gradient(60deg, rgba(220, 38, 38, 0.12) 0px, rgba(220, 38, 38, 0.12) 1px, transparent 1px, transparent 42px),
+    repeating-linear-gradient(-60deg, rgba(220, 38, 38, 0.12) 0px, rgba(220, 38, 38, 0.12) 1px, transparent 1px, transparent 42px),
+    repeating-linear-gradient(0deg, rgba(220, 38, 38, 0.08) 0px, rgba(220, 38, 38, 0.08) 1px, transparent 1px, transparent 42px);
+  background-size: 84px 148px;
+}
+
+/* Extreme dark vignette that frames the arena, keeping focus on the two fighters at center */
+.arena-vignette {
+  background: radial-gradient(ellipse at 50% 50%, transparent 30%, rgba(0, 0, 0, 0.55) 75%, rgba(0, 0, 0, 0.92) 100%);
+}

@@ -1,26 +1,29 @@
 import { motion, useScroll, useTransform } from "framer-motion";
-import { LayoutGrid, Sparkles, Swords } from "lucide-react";
+import { Flame, LayoutGrid, Sparkles, Swords } from "lucide-react";
 import Logo from "./Logo";
 import ThemeToggle from "./ThemeToggle";
 import type { Theme } from "../hooks/useTheme";
 
-export type NavTab = "deck" | "kit" | "battle";
+export type NavTab = "arena" | "deck" | "kit" | "battle";
 
 type Props = {
   activeTab: NavTab;
   onTabChange: (tab: NavTab) => void;
   theme: Theme;
   onToggleTheme: () => void;
+  deckLocked: boolean;
 };
 
 const TABS: { id: NavTab; label: string; icon: typeof LayoutGrid }[] = [
+  { id: "arena", label: "Arena", icon: Flame },
   { id: "deck", label: "Deck", icon: LayoutGrid },
   { id: "kit", label: "Founder Kit", icon: Sparkles },
   { id: "battle", label: "Battle Card", icon: Swords },
 ];
 
-// Fixed top nav: logo + tagline, the Deck / Founder Kit / Battle Card tab bar with a sliding indicator, theme toggle
-export default function NavBar({ activeTab, onTabChange, theme, onToggleTheme }: Props) {
+// Fixed top nav: logo + tagline, the Arena / Deck / Founder Kit / Battle Card tab bar with a sliding
+// indicator, theme toggle. Sits above the Arena's fullscreen overlay (z-50) so tabs stay clickable.
+export default function NavBar({ activeTab, onTabChange, theme, onToggleTheme, deckLocked }: Props) {
   const isDark = theme === "dark";
 
   // Very slight perspective lift as the page scrolls, so the nav feels like it rises off the page
@@ -32,7 +35,7 @@ export default function NavBar({ activeTab, onTabChange, theme, onToggleTheme }:
 
   return (
     <motion.div
-      className="fixed inset-x-0 top-0 z-30 flex items-center justify-between gap-4 border-b px-6 py-3"
+      className="fixed inset-x-0 top-0 z-[60] flex items-center justify-between gap-4 border-b px-6 py-3"
       style={{
         borderColor: isDark ? "var(--color-border)" : "var(--color-border-light)",
         background: isDark ? "var(--color-bg)" : "var(--color-bg-light)",
@@ -56,11 +59,14 @@ export default function NavBar({ activeTab, onTabChange, theme, onToggleTheme }:
         {TABS.map((tab) => {
           const Icon = tab.icon;
           const active = tab.id === activeTab;
+          const locked = tab.id === "deck" && deckLocked;
           return (
             <button
               key={tab.id}
-              onClick={() => onTabChange(tab.id)}
-              className="relative flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition"
+              onClick={() => !locked && onTabChange(tab.id)}
+              className={`relative flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
+                locked ? "pointer-events-none opacity-40" : ""
+              }`}
               style={{ color: active ? "var(--color-accent)" : isDark ? "var(--color-text-secondary)" : "var(--color-text-secondary-light)" }}
             >
               {active && (

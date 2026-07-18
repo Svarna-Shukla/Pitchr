@@ -6,7 +6,7 @@ import DeckPage from "./components/deck/DeckPage";
 import FounderKitPage from "./components/founderkit/FounderKitPage";
 import BattleCardTab from "./components/battlecard/BattleCardTab";
 import ErrorBoundary from "./components/ErrorBoundary";
-import PitcheratorOverlay from "./components/pitcherator/PitcheratorOverlay";
+import BattleArena from "./components/arena/BattleArena";
 import PresentationMode from "./components/presentation/PresentationMode";
 import SessionsPanel from "./components/sessions/SessionsPanel";
 import { useSpeech } from "./hooks/useSpeech";
@@ -14,7 +14,7 @@ import { useClaude } from "./hooks/useClaude";
 import { useAudioLevel } from "./hooks/useAudioLevel";
 import { useFounderKit } from "./hooks/useFounderKit";
 import { useCompetitorRadar } from "./hooks/useCompetitorRadar";
-import { usePitcherator } from "./hooks/usePitcherator";
+import { useBattleArena } from "./hooks/useBattleArena";
 import { useSessions } from "./hooks/useSessions";
 import { useTheme } from "./hooks/useTheme";
 import { exportSlidesToPdf } from "./lib/exportPdf";
@@ -22,31 +22,32 @@ import type { SessionRecord } from "./types/session";
 
 const ERROR_FALLBACK = <p className="p-10 text-sm text-red-400">Something went wrong — try Clear and start again.</p>;
 
-// Main app — wires speech recognition, one-shot Groq deck generation, and every feature tab together
+// Main app — wires speech recognition, the Battle Arena, one-shot Groq deck generation, and every feature tab together
 export default function App() {
   const speech = useSpeech();
   const claude = useClaude();
   const audio = useAudioLevel();
   const founderKit = useFounderKit();
   const competitorRadar = useCompetitorRadar();
-  const pitcherator = usePitcherator();
+  const arena = useBattleArena();
   const sessions = useSessions();
   const themeState = useTheme();
 
-  const [activeTab, setActiveTab] = useState<NavTab>("deck");
-  const [finished, setFinished] = useState(false);
+  const [activeTab, setActiveTab] = useState<NavTab>("arena");
   const [showPresentation, setShowPresentation] = useState(false);
   const [showSessions, setShowSessions] = useState(false);
   const [exporting, setExporting] = useState(false);
   const savedRef = useRef(false);
+  const generatingDeckFromArena = useRef(false);
+  const deckLocked = arena.phase !== "scorecard";
 
-  // Saves the finished deck to session history exactly once per recording
+  // Saves the finished deck to session history exactly once per Battle Arena run
   useEffect(() => {
-    if (finished && !claude.isGenerating && claude.slides.length > 0 && !savedRef.current) {
+    if (!claude.isGenerating && claude.slides.length > 0 && !savedRef.current) {
       sessions.save(claude.slides, founderKit.founderKit);
       savedRef.current = true;
     }
-  }, [finished, claude.isGenerating, claude.slides, founderKit.founderKit, sessions.save]);
+  }, [claude.isGenerating, claude.slides, founderKit.founderKit, sessions.save]);
 
   // Once the deck finishes generating, automatically scans for competitors from the same source text
   useEffect(() => {
@@ -56,32 +57,27 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [claude.slides, claude.lastInput]);
 
-  // Starts or stops the main pitch recording, generating the full deck once recording stops
+  // Once a deck triggered from the arena's scorecard finishes generating, switch over to the newly unlocked Deck tab
+  useEffect(() => {
+    if (generatingDeckFromArena.current && !claude.isGenerating && claude.slides.length > 0) {
+      generatingDeckFromArena.current = false;
+      setActiveTab("deck");
+    }
+  }, [claude.isGenerating, claude.slides]);
+
+  // Starts or stops the founder's live pitch capture used by the arena's intake step
   const toggleRecord = () => {
     if (speech.isListening) {
       speech.stop();
       audio.stop();
-      claude.generate(speech.transcript);
-      setFinished(true);
     } else {
       claude.reset();
       founderKit.reset();
       competitorRadar.reset();
       savedRef.current = false;
-      setFinished(false);
       speech.start();
       audio.start();
     }
-  };
-
-  // Generates a deck directly from typed text, bypassing voice entirely
-  const handleInstantGenerate = (text: string) => {
-    claude.reset();
-    founderKit.reset();
-    competitorRadar.reset();
-    savedRef.current = false;
-    claude.generate(text);
-    setFinished(true);
   };
 
   // Switches tabs, lazily generating the Founder Kit the first time it's opened
@@ -92,18 +88,11 @@ export default function App() {
     }
   };
 
-  // Launches Pitcherator using the finished pitch transcript
-  const handlePitcherator = () => {
-    if (pitcherator.stage === "idle") pitcherator.start(speech.transcript);
-  };
-
-  // Rebuilds the deck using the Pitcherator investor Q&A and suggestions, then returns to the Deck tab
-  const handleGenerateImprovedDeck = () => {
-    if (!pitcherator.scorecard) return;
-    const qa = pitcherator.questions.map((q, i) => ({ question: q, answer: pitcherator.answers[i] ?? "" }));
-    claude.regenerateWithFeedback(claude.lastInput || speech.transcript, qa, pitcherator.scorecard.suggestions);
-    pitcherator.reset();
-    setActiveTab("deck");
+  // Builds the deck from the full 3-round battle transcript once the scorecard names a winner
+  const handleGenerateDeck = () => {
+    if (!arena.scorecard) return;
+    generatingDeckFromArena.current = true;
+    claude.regenerateWithFeedback(arena.pitchTranscript, arena.rounds, arena.scorecard.suggestions);
   };
 
   // Downloads the current deck as a PDF
@@ -119,7 +108,6 @@ export default function App() {
   // Reloads a previously saved session's slides into the live deck
   const handleLoadSession = (session: SessionRecord) => {
     claude.loadSlides(session.slides);
-    setFinished(true);
     setShowSessions(false);
     setActiveTab("deck");
   };
@@ -133,9 +121,8 @@ export default function App() {
     claude.reset();
     founderKit.reset();
     competitorRadar.reset();
-    pitcherator.reset();
+    arena.fightAgain();
     savedRef.current = false;
-    setFinished(false);
   };
 
   const isDark = themeState.theme === "dark";
@@ -148,20 +135,30 @@ export default function App() {
       <BackgroundGrid theme={themeState.theme} />
       <div className="grain-layer" />
       {isDark && <div className="vignette-layer" />}
-      <NavBar activeTab={activeTab} onTabChange={handleTabChange} theme={themeState.theme} onToggleTheme={themeState.toggle} />
+      <NavBar
+        activeTab={activeTab}
+        onTabChange={handleTabChange}
+        theme={themeState.theme}
+        onToggleTheme={themeState.toggle}
+        deckLocked={deckLocked}
+      />
 
       <div className="relative z-10 flex-1 pt-20">
+        {activeTab === "arena" && (
+          <ErrorBoundary fallback={ERROR_FALLBACK}>
+            <BattleArena
+              arena={arena}
+              isListening={speech.isListening}
+              transcript={speech.transcript}
+              audioLevels={audio.levels}
+              onToggleRecord={toggleRecord}
+              onGenerateDeck={handleGenerateDeck}
+              isGeneratingDeck={claude.isGenerating}
+            />
+          </ErrorBoundary>
+        )}
         {activeTab === "deck" && (
           <DeckPage
-            isListening={speech.isListening}
-            onToggleRecord={toggleRecord}
-            transcript={speech.transcript}
-            audioLevels={audio.levels}
-            isGenerating={claude.isGenerating}
-            deckFailed={claude.failed}
-            canPitcherate={finished && !speech.isListening && pitcherator.stage === "idle"}
-            onPitcherator={handlePitcherator}
-            onInstantGenerate={handleInstantGenerate}
             slides={claude.slides}
             theme={themeState.theme}
             competitors={competitorRadar.competitors}
@@ -186,21 +183,18 @@ export default function App() {
         )}
       </div>
 
-      <BottomBar
-        hasSlides={claude.slides.length > 0}
-        pitcheratorActive={pitcherator.stage !== "idle"}
-        exporting={exporting}
-        theme={themeState.theme}
-        onPitcherator={handlePitcherator}
-        onPresent={() => setShowPresentation(true)}
-        onExport={handleExport}
-        onSessions={() => setShowSessions(true)}
-        onClear={handleClear}
-      />
-
-      {pitcherator.stage !== "idle" && (
-        <PitcheratorOverlay pitcherator={pitcherator} onClose={pitcherator.reset} onGenerateImprovedDeck={handleGenerateImprovedDeck} />
+      {activeTab !== "arena" && (
+        <BottomBar
+          hasSlides={claude.slides.length > 0}
+          exporting={exporting}
+          theme={themeState.theme}
+          onPresent={() => setShowPresentation(true)}
+          onExport={handleExport}
+          onSessions={() => setShowSessions(true)}
+          onClear={handleClear}
+        />
       )}
+
       {showPresentation && (
         <PresentationMode slides={claude.slides} theme={themeState.theme} onClose={() => setShowPresentation(false)} />
       )}

@@ -1,25 +1,21 @@
-import { Download, History, Play, RotateCcw, Zap } from "lucide-react";
+import { Download, History, Play, RotateCcw } from "lucide-react";
 import type { Theme } from "../hooks/useTheme";
 
 type Props = {
   hasSlides: boolean;
-  pitcheratorActive: boolean;
   exporting: boolean;
   theme: Theme;
-  onPitcherator: () => void;
   onPresent: () => void;
   onExport: () => void;
   onSessions: () => void;
   onClear: () => void;
 };
 
-// Floating action bar with quick actions: Pitcherator, Present, Export, Sessions, Clear
+// Floating action bar with quick actions: Present, Export, Sessions, Clear
 export default function BottomBar({
   hasSlides,
-  pitcheratorActive,
   exporting,
   theme,
-  onPitcherator,
   onPresent,
   onExport,
   onSessions,
@@ -39,14 +35,6 @@ export default function BottomBar({
           background: isDark ? "var(--color-surface)" : "var(--color-surface-light)",
         }}
       >
-        <button
-          onClick={onPitcherator}
-          className={base}
-          style={{ color: pitcheratorActive ? "var(--color-accent)" : textColor }}
-        >
-          <Zap className="h-4 w-4" /> Pitcherator
-        </button>
-        {divider}
         <button onClick={onPresent} disabled={!hasSlides} className={base} style={{ color: textColor }}>
           <Play className="h-4 w-4" /> Present
         </button>
