@@ -185,7 +185,7 @@ export default function App() {
         )}
         {activeTab === "battle" && (
           <ErrorBoundary fallback={ERROR_FALLBACK}>
-            <BattleCardTab theme={themeState.theme} />
+            <BattleCardTab />
           </ErrorBoundary>
         )}
       </div>

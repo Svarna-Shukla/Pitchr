@@ -103,3 +103,46 @@ h4 {
 .arena-scanlines {
   background-image: repeating-linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 0px, rgba(255, 255, 255, 0.03) 1px, transparent 1px, transparent 3px);
 }
+
+/* Battle Card: diagonal light sweep across Epic/Legendary card art */
+@keyframes shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+/* Battle Card: continuously shifting gold gradient border for Legendary cards */
+@keyframes gold-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Battle Card: a jagged crack flashes onto a card's art when it loses a battle round */
+@keyframes crack-in {
+  from {
+    opacity: 0;
+    stroke-dashoffset: 240;
+  }
+  to {
+    opacity: 1;
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Battle Card: the losing card's fragments fly apart on final defeat */
+@keyframes shatter-fragment {
+  to {
+    transform: translate(var(--shard-x), var(--shard-y)) rotate(var(--shard-r));
+    opacity: 0;
+  }
+}

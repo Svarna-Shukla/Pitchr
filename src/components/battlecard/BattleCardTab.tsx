@@ -1,46 +1,50 @@
+import { AnimatePresence, motion } from "framer-motion";
 import { useBattleCard } from "../../hooks/useBattleCard";
-import BattleCardWizard from "./BattleCardWizard";
-import PokemonCard from "./PokemonCard";
-import BattleArena from "./BattleArena";
-import type { Theme } from "../../hooks/useTheme";
+import QuizFlow from "./quiz/QuizFlow";
+import ForgingLoader from "./ForgingLoader";
+import CardsView from "./CardsView";
+import BattleView from "./battle/BattleView";
 
-type Props = { theme: Theme };
-
-// Battle Card tab: wizard collects founder answers, then renders the player + competitor Pokemon-style cards
-export default function BattleCardTab({ theme }: Props) {
+// Battle Card: a fully standalone tool — quiz, then a Pokemon-style card for the company plus its top 3
+// real competitors, then a head-to-head stat battle against any of them. Always renders on a dark,
+// premium backdrop regardless of the app's light/dark theme, since this feature is unrelated to the Arena.
+export default function BattleCardTab() {
   const battleCard = useBattleCard();
-  const isDark = theme === "dark";
+  const { view, quiz, player, competitors, opponent } = battleCard;
 
   return (
-    <div className="mx-auto max-w-4xl px-6 pb-28 pt-8">
-      <h2 className={`mb-6 text-center font-display text-lg font-semibold ${isDark ? "text-white" : "text-black"}`}>Battle Card</h2>
+    <div className="min-h-[calc(100vh-5rem)] bg-[#08080c] pb-24 pt-8">
+      <h2 className="mb-6 text-center font-display text-lg font-semibold text-white">Battle Card</h2>
 
-      {!battleCard.player ? (
-        <BattleCardWizard battleCard={battleCard} theme={theme} />
-      ) : (
-        <div className="flex flex-col items-center gap-8">
-          <div>
-            <p className={`mb-2 text-center text-sm font-bold uppercase tracking-widest ${isDark ? "text-white/40" : "text-black/40"}`}>
-              Your Card
-            </p>
-            <PokemonCard card={battleCard.player} accent="#8b5cf6" />
-          </div>
-          <div className="w-full">
-            <p className={`mb-3 text-center text-sm font-bold uppercase tracking-widest ${isDark ? "text-white/40" : "text-black/40"}`}>
-              Competitors
-            </p>
-            <div className="flex flex-wrap justify-center gap-4">
-              {battleCard.competitors.map((c, i) => (
-                <PokemonCard key={i} card={c} accent="#f97316" />
-              ))}
-            </div>
-          </div>
-          <BattleArena player={battleCard.player} competitors={battleCard.competitors} />
-          <button onClick={battleCard.reset} className={`min-h-11 text-sm font-semibold underline ${isDark ? "text-white/40" : "text-black/40"}`}>
-            Start over
-          </button>
-        </div>
-      )}
+      <AnimatePresence mode="wait">
+        {view === "quiz" && (
+          <motion.div key="quiz" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="px-4">
+            {player.isGenerating ? (
+              <ForgingLoader />
+            ) : (
+              <QuizFlow quiz={quiz} isGenerating={player.isGenerating} failed={player.failed} onGenerate={battleCard.generate} />
+            )}
+          </motion.div>
+        )}
+
+        {view === "cards" && player.card && (
+          <motion.div key="cards" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            <CardsView
+              player={player.card}
+              competitors={competitors.cards}
+              competitorsGenerating={competitors.isGenerating}
+              competitorsFailed={competitors.failed}
+              onRetryCompetitors={battleCard.retryCompetitors}
+              onBattle={battleCard.startBattle}
+              onReset={battleCard.reset}
+            />
+          </motion.div>
+        )}
+
+        {view === "battle" && player.card && opponent && (
+          <BattleView key="battle" player={player.card} competitor={opponent} onExit={battleCard.exitBattle} onAnotherCompetitor={battleCard.exitBattle} />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
