@@ -1,5 +1,5 @@
 export const MAX_BULLETS = 3;
-export const MAX_BULLET_WORDS = 10;
+export const MAX_BULLET_WORDS = 8;
 
 // Truncates a string to at most `max` words, appending an ellipsis if anything was cut
 export function truncateWords(text: string, max: number): string {

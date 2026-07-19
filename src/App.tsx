@@ -23,6 +23,7 @@ import { exportSlidesToPdf } from "./lib/exportPdf";
 import { buildArenaTranscript } from "./lib/text";
 import { combinedGrade, overallScore } from "./lib/scoring";
 import type { SessionRecord } from "./types/session";
+import type { SlideTheme } from "./lib/premiumSlideTheme";
 
 const ERROR_FALLBACK = <p className="p-10 text-sm text-red-400">Something went wrong — try Clear and start again.</p>;
 
@@ -40,6 +41,8 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<NavTab>("arena");
   const [arenaEntered, setArenaEntered] = useState(false);
   const [showPresentation, setShowPresentation] = useState(false);
+  // Slides' own dark/light theme — independent of the app's own theme toggle (themeState above)
+  const [slideTheme, setSlideTheme] = useState<SlideTheme>("dark");
   const [showSessions, setShowSessions] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [kitInput, setKitInput] = useState("");
@@ -147,7 +150,7 @@ export default function App() {
   const handleExport = async () => {
     setExporting(true);
     try {
-      await exportSlidesToPdf(claude.slides);
+      await exportSlidesToPdf(claude.slides, slideTheme);
     } catch (err) {
       console.error("Deck PDF export failed:", err);
     } finally {
@@ -218,6 +221,8 @@ export default function App() {
           <DeckPage
             slides={claude.slides}
             theme={themeState.theme}
+            slideTheme={slideTheme}
+            onToggleSlideTheme={() => setSlideTheme((t) => (t === "dark" ? "light" : "dark"))}
             competitors={competitorRadar.competitors}
             isCompetitorsGenerating={competitorRadar.isGenerating}
             competitorsFailed={competitorRadar.failed}
@@ -262,7 +267,7 @@ export default function App() {
 
       {generatingDeckFromArena.current && claude.isGenerating && <DeckForgingOverlay />}
 
-      {showPresentation && <PresentationMode slides={claude.slides} onClose={() => setShowPresentation(false)} />}
+      {showPresentation && <PresentationMode slides={claude.slides} slideTheme={slideTheme} onClose={() => setShowPresentation(false)} />}
       {showSessions && (
         <SessionsPanel
           sessions={sessions.sessions}

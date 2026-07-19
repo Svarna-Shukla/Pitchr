@@ -1,17 +1,21 @@
 import { useEffect, useRef, useState } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Moon, Sun } from "lucide-react";
 import type { Slide } from "../../types/slide";
 import type { Theme } from "../../hooks/useTheme";
+import type { SlideTheme } from "../../lib/premiumSlideTheme";
 import DeckSlideCard from "./DeckSlideCard";
+import SlideNav from "../SlideNav";
+import SlideThumbnails from "./SlideThumbnails";
 
-type Props = { slides: Slide[]; theme: Theme };
+type Props = { slides: Slide[]; theme: Theme; slideTheme: SlideTheme; onToggleSlideTheme: () => void };
 
 // Horizontal, snap-scrolling row of 16:9 slide cards — a real presentation deck laid out left to
-// right. A "Slide X of N" counter and prev/next arrows sit above the row, themed to match the app's
-// own light/dark toggle (unlike the cards themselves, which sit on the deck's forced-dark palette).
-// The counter tracks whichever card is most visible, so it stays in sync with manual
-// swiping/scrolling too, not just the arrow buttons.
-export default function SlideDeckRow({ slides, theme }: Props) {
+// right. Its header carries the "Slide X of N" counter, prev/next arrows, and the dark/light
+// slide-theme toggle (themed to match the app's own light/dark toggle, unlike the cards themselves,
+// which render in their own independently-toggled slideTheme). A click-to-jump thumbnail strip sits
+// below the row. The counter tracks whichever card is most visible, so it stays in sync with manual
+// swiping/scrolling too, not just the arrow buttons or keyboard.
+export default function SlideDeckRow({ slides, theme, slideTheme, onToggleSlideTheme }: Props) {
   const isDark = theme === "dark";
   const [activeIndex, setActiveIndex] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -47,42 +51,50 @@ export default function SlideDeckRow({ slides, theme }: Props) {
     return () => observer.disconnect();
   }, [slides.length]);
 
-  // Smooth-scrolls a given card to the start of the row; arrow buttons clamp at the deck's ends
+  // Smooth-scrolls a given card to the start of the row; clamps at the deck's ends
   const goTo = (index: number) => {
     const clamped = Math.max(0, Math.min(slides.length - 1, index));
     cardRefs.current[clamped]?.scrollIntoView({ behavior: "smooth", inline: "start", block: "nearest" });
   };
 
+  // Left/right arrow keys step through the deck while it's mounted
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "ArrowLeft") goTo(activeIndex - 1);
+      else if (e.key === "ArrowRight") goTo(activeIndex + 1);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeIndex, slides.length]);
+
+  const mutedColor = isDark ? "var(--color-text-muted)" : "var(--color-text-muted-light)";
+  const chromeColor = isDark ? "#ffffff" : "#000000";
+
   return (
     <div className="flex w-full flex-col gap-3">
       <div className="flex items-center justify-between px-6">
-        <span
-          className="text-xs font-semibold uppercase tracking-widest"
-          style={{ color: isDark ? "var(--color-text-muted)" : "var(--color-text-muted-light)" }}
-        >
+        <span className="text-lg font-bold" style={{ color: mutedColor, fontVariantCaps: "small-caps" as const }}>
           Slide {activeIndex + 1} of {slides.length}
         </span>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <button
-            onClick={() => goTo(activeIndex - 1)}
-            disabled={activeIndex === 0}
-            className={`flex h-8 w-8 items-center justify-center rounded-full border transition disabled:cursor-not-allowed disabled:opacity-30 ${
+            onClick={onToggleSlideTheme}
+            className={`flex h-8 w-8 items-center justify-center rounded-full border transition ${
               isDark ? "border-white/10 text-white hover:border-white/30" : "border-black/10 text-black hover:border-black/30"
             }`}
-            aria-label="Previous slide"
+            aria-label={`Switch slides to ${slideTheme === "dark" ? "light" : "dark"} theme`}
           >
-            <ChevronLeft className="h-4 w-4" />
+            {slideTheme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </button>
-          <button
-            onClick={() => goTo(activeIndex + 1)}
-            disabled={activeIndex === slides.length - 1}
-            className={`flex h-8 w-8 items-center justify-center rounded-full border transition disabled:cursor-not-allowed disabled:opacity-30 ${
-              isDark ? "border-white/10 text-white hover:border-white/30" : "border-black/10 text-black hover:border-black/30"
-            }`}
-            aria-label="Next slide"
-          >
-            <ChevronRight className="h-4 w-4" />
-          </button>
+          <div className="flex items-center gap-2" style={{ color: chromeColor }}>
+            <SlideNav
+              onPrev={() => goTo(activeIndex - 1)}
+              onNext={() => goTo(activeIndex + 1)}
+              canPrev={activeIndex > 0}
+              canNext={activeIndex < slides.length - 1}
+            />
+          </div>
         </div>
       </div>
       <div ref={containerRef} className="flex w-full snap-x snap-mandatory gap-6 overflow-x-auto px-6 pb-6">
@@ -95,9 +107,11 @@ export default function SlideDeckRow({ slides, theme }: Props) {
             slide={slide}
             index={i}
             total={slides.length}
+            slideTheme={slideTheme}
           />
         ))}
       </div>
+      <SlideThumbnails slides={slides} activeIndex={activeIndex} slideTheme={slideTheme} onSelect={goTo} />
     </div>
   );
 }

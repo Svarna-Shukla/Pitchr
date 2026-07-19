@@ -1,31 +1,31 @@
 import type { LayoutProps } from "../SlideLayout";
-import { BULLET_CLASS, TITLE_CLASS } from "./typeScale";
+import { SLIDE_PALETTES, resolveAccent, statTextShadow } from "../../../../lib/premiumSlideTheme";
+import { STAT_CLASS, TITLE_CLASS } from "./typeScale";
+import SlideBullets from "../../../SlideBullets";
 
-// Split layout: title on the left half, the stat (or first bullet, large) on the right half, a
-// thin orange vertical line dividing the two — the always-safe fallback layout for any slide type
-export default function SplitLayout({ slide, context }: LayoutProps) {
-  const rightContent = slide.stat ?? slide.bulletPoints[0] ?? "";
+// Split layout: a strict 50/50 grid — a massive title on the left, a massive stat (or bullet
+// points, if there's no stat) on the right, divided by a thin accent line. The always-safe fallback.
+export default function SplitLayout({ slide, slideTheme }: LayoutProps) {
+  const palette = SLIDE_PALETTES[slideTheme];
+  const accent = resolveAccent(slide.accentColor, slideTheme);
 
   return (
-    <div className="flex h-full flex-1 items-center gap-8">
-      <div className="flex flex-1 flex-col justify-center">
-        <h2 className={`font-display font-bold leading-tight text-white ${TITLE_CLASS[context]}`}>{slide.title}</h2>
-        {slide.bulletPoints.length > 1 && (
-          <ul className="mt-6 space-y-3">
-            {slide.bulletPoints.slice(1).map((b, i) => (
-              <li key={i} className={`flex items-start gap-3 leading-relaxed text-white/80 ${BULLET_CLASS[context]}`}>
-                <span className="mt-1.5 h-2 w-2 shrink-0 rounded-[2px]" style={{ background: slide.accentColor }} />
-                {b}
-              </li>
-            ))}
-          </ul>
+    <div className="relative grid h-full flex-1 grid-cols-2 items-center gap-12">
+      <div className="absolute left-1/2 top-16 bottom-16 w-px bg-orange-500" />
+      <h2 className={`font-display ${TITLE_CLASS}`} style={{ color: palette.title }}>
+        {slide.title}
+      </h2>
+      <div className="flex h-full flex-col justify-center">
+        {slide.stat ? (
+          <p
+            className={`font-display ${STAT_CLASS}`}
+            style={{ color: accent, textShadow: statTextShadow(slideTheme), transform: "translateZ(40px)" }}
+          >
+            {slide.stat}
+          </p>
+        ) : (
+          <SlideBullets bullets={slide.bulletPoints} color={accent} textColor={palette.bullet} marker="square" />
         )}
-      </div>
-      <div className="h-full w-px shrink-0" style={{ background: slide.accentColor }} />
-      <div className="flex flex-1 items-center justify-center text-center">
-        <p className="font-display text-3xl font-bold leading-tight" style={{ color: slide.accentColor }}>
-          {rightContent}
-        </p>
       </div>
     </div>
   );

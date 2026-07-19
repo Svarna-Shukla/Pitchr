@@ -1,13 +1,26 @@
 import type { LayoutProps } from "../SlideLayout";
-import { HERO_STAT_CLASS, HERO_TITLE_CLASS } from "./typeScale";
+import { SLIDE_PALETTES, resolveAccent, statTextShadow } from "../../../../lib/premiumSlideTheme";
+import { HERO_STAT_CLASS, HERO_TITLE_CLASS, LAYOUT_LABELS } from "./typeScale";
 
-// Hero layout: a centered massive title with an optional huge orange stat below — no bullets, all whitespace
-export default function HeroLayout({ slide, context }: LayoutProps) {
+// Hero layout: an Apple product-reveal moment — a tiny kicker, one massive centred title, and an
+// optional floating stat below. Zero bullets, maximum whitespace, one idea only.
+export default function HeroLayout({ slide, slideTheme }: LayoutProps) {
+  const palette = SLIDE_PALETTES[slideTheme];
+  const accent = resolveAccent(slide.accentColor, slideTheme);
+
   return (
-    <div className="flex h-full flex-1 flex-col items-center justify-center text-center">
-      <h2 className={`font-display font-bold leading-[1.05] text-white ${HERO_TITLE_CLASS[context]}`}>{slide.title}</h2>
+    <div className="flex h-full flex-1 flex-col items-center justify-center gap-8 text-center">
+      <p className="text-xs uppercase tracking-widest opacity-50" style={{ color: palette.title }}>
+        {LAYOUT_LABELS.hero}
+      </p>
+      <h2 className={`font-display ${HERO_TITLE_CLASS}`} style={{ color: palette.title }}>
+        {slide.title}
+      </h2>
       {slide.stat && (
-        <p className={`mt-6 font-display font-bold ${HERO_STAT_CLASS[context]}`} style={{ color: slide.accentColor }}>
+        <p
+          className={`font-display ${HERO_STAT_CLASS}`}
+          style={{ color: accent, textShadow: statTextShadow(slideTheme), transform: "translateZ(40px)" }}
+        >
           {slide.stat}
         </p>
       )}

@@ -7,10 +7,13 @@ import CompetitorRadarPanel from "../competitorradar/CompetitorRadarPanel";
 import type { Slide } from "../../types/slide";
 import type { Competitor } from "../../types/competitor";
 import type { Theme } from "../../hooks/useTheme";
+import type { SlideTheme } from "../../lib/premiumSlideTheme";
 
 type Props = {
   slides: Slide[];
   theme: Theme;
+  slideTheme: SlideTheme;
+  onToggleSlideTheme: () => void;
   competitors: Competitor[] | null;
   isCompetitorsGenerating: boolean;
   competitorsFailed: boolean;
@@ -27,6 +30,8 @@ type Props = {
 export default function DeckPage({
   slides,
   theme,
+  slideTheme,
+  onToggleSlideTheme,
   competitors,
   isCompetitorsGenerating,
   competitorsFailed,
@@ -61,7 +66,7 @@ export default function DeckPage({
       ) : (
         <>
           <DeckDivider theme={theme} />
-          <SlideDeckRow slides={slides} theme={theme} />
+          <SlideDeckRow slides={slides} theme={theme} slideTheme={slideTheme} onToggleSlideTheme={onToggleSlideTheme} />
           <motion.div className="mt-8" {...revealOnScroll}>
             <CompetitorRadarPanel competitors={competitors} isGenerating={isCompetitorsGenerating} failed={competitorsFailed} theme={theme} />
           </motion.div>

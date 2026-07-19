@@ -1,14 +1,16 @@
 import { useEffect, useState } from "react";
-import { AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import type { Slide } from "../../types/slide";
+import type { SlideTheme } from "../../lib/premiumSlideTheme";
 import PresentationSlide from "./PresentationSlide";
 import PresentationNav from "./PresentationNav";
 
-type Props = { slides: Slide[]; onClose: () => void };
+type Props = { slides: Slide[]; slideTheme: SlideTheme; onClose: () => void };
 
-// Fullscreen one-slide-at-a-time presentation with keyboard and on-screen navigation. Always dark,
-// per the deck's forced palette, regardless of the app's own light/dark theme toggle.
-export default function PresentationMode({ slides, onClose }: Props) {
+// Fullscreen one-slide-at-a-time presentation: a cinematic 3D zoom on entry, then a cube-style
+// rotation between slides. Always renders at the current slideTheme (dark or light), independent
+// of the app's own light/dark theme toggle.
+export default function PresentationMode({ slides, slideTheme, onClose }: Props) {
   const [index, setIndex] = useState(0);
   const [direction, setDirection] = useState(1);
 
@@ -36,11 +38,20 @@ export default function PresentationMode({ slides, onClose }: Props) {
   }, [onClose, slides.length]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-10" style={{ background: "#0a0a0a" }}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-10" style={{ background: "#000000" }}>
+      <div className="vignette-layer" />
       <PresentationNav index={index} total={slides.length} onPrev={prev} onNext={next} onClose={onClose} />
-      <AnimatePresence mode="wait">
-        <PresentationSlide key={index} slide={slides[index]} index={index} total={slides.length} direction={direction} />
-      </AnimatePresence>
+      <motion.div
+        className="relative aspect-video w-full max-w-5xl"
+        style={{ perspective: 1600 }}
+        initial={{ scale: 0.3, rotateX: 10, opacity: 0 }}
+        animate={{ scale: 1, rotateX: 0, opacity: 1 }}
+        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+      >
+        <AnimatePresence custom={direction} mode="popLayout">
+          <PresentationSlide key={index} slide={slides[index]} index={index} total={slides.length} direction={direction} slideTheme={slideTheme} />
+        </AnimatePresence>
+      </motion.div>
     </div>
   );
 }

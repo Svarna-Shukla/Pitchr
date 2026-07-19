@@ -2,10 +2,12 @@ import { createElement } from "react";
 import { createRoot } from "react-dom/client";
 import html2canvas from "html2canvas-pro";
 import { jsPDF } from "jspdf";
-import PremiumSlide from "../components/deck/premium/PremiumSlide";
+import SlideCard from "../components/deck/premium/SlideCard";
 import type { Slide } from "../types/slide";
 import type { FounderKit } from "../types/founderKit";
 import type { Theme } from "../hooks/useTheme";
+import type { SlideTheme } from "./premiumSlideTheme";
+import { SLIDE_PALETTES } from "./premiumSlideTheme";
 
 const PAGE_W = 960;
 const PAGE_H = 540; // true 16:9 landscape
@@ -26,7 +28,7 @@ function nextPaint(): Promise<void> {
 // JPEG (not PNG) is deliberate: jsPDF embeds PNG image data almost uncompressed, which blows a 6-slide
 // deck up to tens of megabytes — these slides are opaque and mostly flat colour, so JPEG at high
 // quality is visually lossless here while producing a file over an order of magnitude smaller.
-async function captureSlide(slide: Slide, index: number, total: number): Promise<string> {
+async function captureSlide(slide: Slide, index: number, total: number, slideTheme: SlideTheme): Promise<string> {
   const container = document.createElement("div");
   container.style.position = "fixed";
   container.style.left = "-99999px";
@@ -37,14 +39,14 @@ async function captureSlide(slide: Slide, index: number, total: number): Promise
 
   try {
     const root = createRoot(container);
-    root.render(createElement(PremiumSlide, { slide, index, total, context: "pdf" }));
+    root.render(createElement(SlideCard, { slide, index, total, context: "pdf", slideTheme }));
     await nextPaint();
 
     // html2canvas occasionally never settles on a given element (an upstream quirk, not tied to
     // any particular slide layout) — race it against a timeout so one bad slide can't hang the
     // whole export forever
     const canvas = await Promise.race([
-      html2canvas(container, { backgroundColor: "#0a0a0a" }),
+      html2canvas(container, { backgroundColor: SLIDE_PALETTES[slideTheme].background }),
       new Promise<never>((_, reject) => setTimeout(() => reject(new Error(`Slide ${index + 1} capture timed out`)), CAPTURE_TIMEOUT_MS)),
     ]);
     root.unmount();
@@ -54,14 +56,14 @@ async function captureSlide(slide: Slide, index: number, total: number): Promise
   }
 }
 
-// Renders every slide as its own 16:9 page by rasterizing the live PremiumSlide component (charts,
-// custom typography, and the forced dark palette all capture faithfully this way), one slide at a
+// Renders every slide as its own 16:9 page by rasterizing the live SlideCard component (charts,
+// custom typography, and the current slide theme all capture faithfully this way), one slide at a
 // time so captures never race each other, and downloads the deck as a PDF
-export async function exportSlidesToPdf(slides: Slide[]): Promise<void> {
+export async function exportSlidesToPdf(slides: Slide[], slideTheme: SlideTheme = "dark"): Promise<void> {
   await document.fonts.ready;
   const doc = new jsPDF({ orientation: "landscape", unit: "pt", format: [PAGE_W, PAGE_H] });
   for (let i = 0; i < slides.length; i++) {
-    const dataUrl = await captureSlide(slides[i], i, slides.length);
+    const dataUrl = await captureSlide(slides[i], i, slides.length, slideTheme);
     if (i > 0) doc.addPage([PAGE_W, PAGE_H], "landscape");
     doc.addImage(dataUrl, "JPEG", 0, 0, PAGE_W, PAGE_H);
   }
