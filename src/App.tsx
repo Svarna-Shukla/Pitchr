@@ -157,6 +157,7 @@ export default function App() {
               isListening={speech.isListening}
               transcript={speech.transcript}
               audioLevels={audio.levels}
+              speechSupported={speech.supported}
               onToggleRecord={toggleRecord}
               onGenerateDeck={handleGenerateDeck}
               isGeneratingDeck={claude.isGenerating}

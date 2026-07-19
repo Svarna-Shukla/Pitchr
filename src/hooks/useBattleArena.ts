@@ -7,7 +7,9 @@ import { useArenaHealth } from "./useArenaHealth";
 import { usePitcherator } from "./usePitcherator";
 import { useSpeechSynthesis } from "./useSpeechSynthesis";
 
-const JUDGMENT_DISPLAY_MS = 1800;
+// Matches JudgmentFlash's 3.5s hold + 0.5s fade exactly, so the next question never starts typing
+// until the comment has fully faded out
+const JUDGMENT_DISPLAY_MS = 4000;
 const MIN_SCANNING_MS = 2000;
 const LOSING_THRESHOLD = 40;
 
@@ -31,6 +33,7 @@ export function useBattleArena() {
   const [pitchTranscript, setPitchTranscript] = useState("");
   const [lastResult, setLastResult] = useState<{ tier: AnswerTier; reaction: string } | null>(null);
   const [isPartial, setIsPartial] = useState(false);
+  const [reviewAcknowledged, setReviewAcknowledged] = useState(false);
   const scanningReady = useRef(false);
   const attackTrigger = useRef(0);
 
@@ -80,6 +83,7 @@ export function useBattleArena() {
       setRoundNumber(1);
       setLastResult(null);
       setIsPartial(false);
+      setReviewAcknowledged(false);
       setPitchTranscript(transcript);
       health.reset();
       setPhase("scanning");
@@ -126,11 +130,17 @@ export function useBattleArena() {
     pitcherator.generateScorecard(rounds);
   }, [pitcherator, rounds]);
 
-  // Called from the game-over screen's "See What Went Wrong" — same scorecard, marked partial
+  // Called from the game-over screen's "See What Went Wrong" — same scorecard, marked partial, plus
+  // the answer-by-answer review shown on the "What Went Wrong" screen before the scorecard itself
   const viewPartialResults = useCallback(() => {
     setIsPartial(true);
+    setReviewAcknowledged(false);
     pitcherator.generateScorecard(rounds);
+    pitcherator.generateAnswerReview(rounds);
   }, [pitcherator, rounds]);
+
+  // Dismisses the "What Went Wrong" screen and reveals the full scorecard behind it
+  const continueToScorecard = useCallback(() => setReviewAcknowledged(true), []);
 
   // Flushes the battle entirely and returns to the personality-select step
   const fightAgain = useCallback(() => {
@@ -140,6 +150,7 @@ export function useBattleArena() {
     setLastResult(null);
     setPersonality(null);
     setIsPartial(false);
+    setReviewAcknowledged(false);
     health.reset();
     pitcherator.reset();
     setPhase("personality-select");
@@ -166,6 +177,8 @@ export function useBattleArena() {
     pitchTranscript,
     currentQuestion: pitcherator.currentQuestion,
     scorecard: pitcherator.scorecard,
+    answerReview: pitcherator.answerReview,
+    showAnswerReview: phase === "scorecard" && isPartial && !reviewAcknowledged,
     isPartial,
     failed: pitcherator.failed,
     health: health.health,
@@ -175,6 +188,7 @@ export function useBattleArena() {
     maskState,
     maskIntensity: personality?.maskIntensity ?? 1,
     attackTrigger: attackTrigger.current,
+    voiceIsSpeaking: voice.isSpeaking,
     voiceEnabled: voice.enabled,
     toggleVoice: voice.toggle,
     selectPersonality,
@@ -183,6 +197,7 @@ export function useBattleArena() {
     submitAnswer,
     endPitch,
     viewPartialResults,
+    continueToScorecard,
     fightAgain,
   };
 }

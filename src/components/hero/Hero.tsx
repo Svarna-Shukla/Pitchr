@@ -84,7 +84,7 @@ export default function Hero({ onStartPitching, onTypeInstead }: Props) {
         </motion.div>
       </div>
 
-      <div className="order-1 relative mx-auto h-[300px] w-[300px] md:order-2 md:mx-0 md:h-[560px] md:w-auto md:max-w-none md:flex-1">
+      <div className="order-1 relative mx-auto h-[320px] w-[320px] overflow-visible md:order-2 md:mx-0 md:h-[560px] md:w-auto md:max-w-none md:flex-1">
         <Suspense fallback={<HeroScenePlaceholder />}>
           <HeroScene />
         </Suspense>

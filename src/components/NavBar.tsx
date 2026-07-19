@@ -46,7 +46,7 @@ export default function NavBar({ activeTab, onTabChange, theme, onToggleTheme, d
       }}
     >
       <div className="flex items-center gap-3">
-        <Logo />
+        <Logo theme={theme} />
         <span
           className="hidden text-xs md:inline"
           style={{ color: isDark ? "var(--color-text-muted)" : "var(--color-text-muted-light)" }}

@@ -14,5 +14,15 @@ export type Scorecard = {
   suggestions: string[];
 };
 
+// One round's side-by-side answer comparison for the post-game-over "What Went Wrong" screen: the
+// founder's actual answer, a structure/clarity-only rewrite of that same answer, and a one-line note
+// on what specifically was wrong with it
+export type AnswerReviewItem = {
+  question: string;
+  answer: string;
+  corrected: string;
+  note: string;
+};
+
 
 // pitcherator feature

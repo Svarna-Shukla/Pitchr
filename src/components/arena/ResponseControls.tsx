@@ -5,6 +5,7 @@ import HexMicButton from "./HexMicButton";
 import Transcript from "../Transcript";
 import { useSpeech } from "../../hooks/useSpeech";
 import ResponseTimer from "./ResponseTimer";
+import VoiceSupportBanner from "./VoiceSupportBanner";
 
 type Props = { visible: boolean; onSubmitAnswer: (text: string, isTimeout?: boolean) => void };
 
@@ -26,6 +27,7 @@ export default function ResponseControls({ visible, onSubmitAnswer }: Props) {
     }
   };
 
+  // Submits the typed answer, ignoring empty submissions
   const handleTypedSubmit = () => {
     if (!typed.trim()) return;
     onSubmitAnswer(typed.trim());
@@ -47,20 +49,29 @@ export default function ResponseControls({ visible, onSubmitAnswer }: Props) {
       style={{ pointerEvents: visible ? "auto" : "none" }}
     >
       {visible && <ResponseTimer onTimeout={handleTimeout} />}
+      <VoiceSupportBanner supported={speech.supported} />
       <Transcript text={speech.transcript} isListening={speech.isListening} />
-      <div className="flex w-full max-w-md items-center gap-3">
-        <HexMicButton recording={speech.isListening} onClick={handleToggleRecord} size={56} />
-        <input
-          value={typed}
-          onChange={(e) => setTyped(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && handleTypedSubmit()}
-          placeholder="...defend yourself"
-          className="flex-1 rounded-full border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-white/30 outline-none focus:border-white/30"
-        />
+      <div className="flex w-full max-w-md flex-col items-stretch gap-3 sm:flex-row sm:items-center">
+        <div className="flex items-center gap-3 sm:contents">
+          <HexMicButton recording={speech.isListening} onClick={handleToggleRecord} size={56} />
+          <textarea
+            value={typed}
+            onChange={(e) => setTyped(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                handleTypedSubmit();
+              }
+            }}
+            placeholder="...defend yourself"
+            rows={2}
+            className="min-h-[120px] w-full flex-1 resize-none rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-white/30 outline-none focus:border-white/30 sm:min-h-0 sm:rounded-full sm:py-3"
+          />
+        </div>
         <button
           onClick={handleTypedSubmit}
           disabled={!typed.trim()}
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white/10 text-white transition disabled:cursor-not-allowed disabled:opacity-30"
+          className="flex h-11 w-11 shrink-0 items-center justify-center self-end rounded-full bg-white/10 text-white transition disabled:cursor-not-allowed disabled:opacity-30 sm:self-auto"
           aria-label="Submit answer"
         >
           <Send className="h-4 w-4" />

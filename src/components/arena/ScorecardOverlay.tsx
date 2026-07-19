@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { RotateCcw, Wand2 } from "lucide-react";
 import type { Scorecard } from "../../types/pitcherator";
-import { overallScore, letterGrade } from "../../lib/scoring";
+import { overallScore, combinedGrade } from "../../lib/scoring";
 import Button from "../Button";
 import GradeReveal from "./GradeReveal";
 import ScoreMatrix from "./ScoreMatrix";
@@ -23,7 +23,7 @@ type Props = {
 // session only — unlocking the Deck tab with a freshly generated deck built from the transcript.
 export default function ScorecardOverlay({ scorecard, isPartial, health, questionsSurvived, personalityName, onFightAgain, onGenerateDeck, isGeneratingDeck }: Props) {
   const total = overallScore(scorecard.ratings);
-  const grade = letterGrade(total);
+  const grade = combinedGrade(total, health);
 
   return (
     <motion.div
@@ -34,6 +34,9 @@ export default function ScorecardOverlay({ scorecard, isPartial, health, questio
     >
       <h2 className="font-display text-2xl font-bold text-white">{isPartial ? "Here's What Went Wrong" : "Pitch Complete"}</h2>
       <GradeReveal total={total} grade={grade} />
+      <span className="rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-white/60">
+        Questions Survived: {questionsSurvived}
+      </span>
       <ScoreMatrix ratings={scorecard.ratings} />
 
       <h3 className="text-sm font-bold uppercase tracking-widest text-white/50">Improve</h3>

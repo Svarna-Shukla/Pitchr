@@ -10,7 +10,7 @@ export const PERSONALITIES: PersonalityConfig[] = [
     tagline: "Cold. Analytical. Says almost nothing.",
     description: "Barely reacts. Long pauses. When he finally speaks, it cuts deep.",
     promptStyle:
-      "Write as a coldly analytical, barely-reactive investor who rarely shows emotion. Terse, clinical, unsettling in its restraint.",
+      "Write as a coldly analytical, barely-reactive investor who rarely shows emotion. Terse, clinical, unsettling in its restraint. Keep questions short and cold — no personality remarks, no extra flourish tacked onto the end.",
     maskIntensity: 0.6,
     voiceLines: {
       strong: ["Noted.", "Acceptable."],
@@ -24,7 +24,8 @@ export const PERSONALITIES: PersonalityConfig[] = [
     name: "The Shark",
     tagline: "Aggressive. Interrupts. Never satisfied.",
     description: "Loud, impatient, always hunting for the kill. Nothing is ever good enough.",
-    promptStyle: "Write as an aggressive, impatient investor who interrupts and is never satisfied, always pushing harder.",
+    promptStyle:
+      "Write as an aggressive, impatient investor who interrupts and is never satisfied, always pushing harder. End the question with a sharp, impatient remark like 'Answer fast.' or 'I have 10 other meetings.'",
     maskIntensity: 1.4,
     voiceLines: {
       strong: ["Finally.", "Not bad."],
@@ -39,7 +40,7 @@ export const PERSONALITIES: PersonalityConfig[] = [
     tagline: "Compares everything to something else.",
     description: "Constantly benchmarks you against companies you've never heard of.",
     promptStyle:
-      "Write as an investor obsessed with pattern-matching to other startups — constantly comparing the idea to existing companies, e.g. 'This sounds like Uber for X.'",
+      "Write as an investor obsessed with pattern-matching to other startups — constantly comparing the idea to a specific real or plausible company and year, e.g. 'This sounds exactly like what Notion tried in 2019. What makes you different?'",
     maskIntensity: 1.0,
     voiceLines: {
       strong: ["Interesting angle.", "Original, actually."],
@@ -54,7 +55,7 @@ export const PERSONALITIES: PersonalityConfig[] = [
     tagline: "Only cares how it actually works.",
     description: "Dismisses vision talk. Wants architecture, mechanisms, proof.",
     promptStyle:
-      "Write as an investor who only cares about technical mechanics and how things actually work, dismissing vision or storytelling.",
+      "Write as an investor who only cares about technical mechanics and how things actually work, dismissing vision or storytelling. Drill into implementation specifics, e.g. 'How does this actually work under the hood? Walk me through the technical architecture.'",
     maskIntensity: 1.1,
     voiceLines: {
       strong: ["That checks out.", "Sound mechanics."],

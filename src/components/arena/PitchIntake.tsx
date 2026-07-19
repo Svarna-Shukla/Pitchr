@@ -3,23 +3,27 @@ import { motion } from "framer-motion";
 import HexMicButton from "./HexMicButton";
 import Transcript from "../Transcript";
 import Waveform from "../Waveform";
+import VoiceSupportBanner from "./VoiceSupportBanner";
 
 type Props = {
   isListening: boolean;
   transcript: string;
   audioLevels: number[];
+  speechSupported: boolean;
   onToggleRecord: () => void;
   onSubmitPitch: (text: string) => void;
 };
 
 // Phase 1 of the arena: "Step Into the Arena" — capture the founder's pitch by voice or typed text
 // while the mask looms above, before the interrogation begins. Rendered as the bottom-slot content
-// beneath MaskStage, which handles the mask itself.
-export default function PitchIntake({ isListening, transcript, audioLevels, onToggleRecord, onSubmitPitch }: Props) {
+// beneath MaskStage, which handles the mask itself. The typed textarea is always visible and usable,
+// independent of whether voice input is supported on this browser.
+export default function PitchIntake({ isListening, transcript, audioLevels, speechSupported, onToggleRecord, onSubmitPitch }: Props) {
   const [typed, setTyped] = useState("");
   const pitchText = transcript.trim() || typed.trim();
   const canEnter = !isListening && pitchText.length > 0;
 
+  // Submits whichever pitch text is available — spoken transcript takes priority over typed text
   const handleEnter = () => {
     if (canEnter) onSubmitPitch(pitchText);
   };
@@ -33,6 +37,7 @@ export default function PitchIntake({ isListening, transcript, audioLevels, onTo
       <h2 className="font-display text-3xl font-bold text-white">Step Into the Arena</h2>
       <p className="text-sm text-white/50">Pitch your idea. The investor is waiting to grill you on it.</p>
 
+      <VoiceSupportBanner supported={speechSupported} />
       <HexMicButton recording={isListening} onClick={onToggleRecord} />
       <Waveform levels={audioLevels} active={isListening} />
       <Transcript text={transcript} isListening={isListening} />
@@ -42,7 +47,7 @@ export default function PitchIntake({ isListening, transcript, audioLevels, onTo
         onChange={(e) => setTyped(e.target.value)}
         placeholder="...or type your pitch instead"
         rows={3}
-        className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-white/30 outline-none focus:border-white/30"
+        className="min-h-[120px] w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-white/30 outline-none focus:border-white/30"
       />
 
       <button

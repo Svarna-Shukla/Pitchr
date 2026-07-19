@@ -5,11 +5,12 @@ export function overallScore(ratings: ScorecardRatings): number {
   return Object.values(ratings).reduce((sum, v) => sum + v, 0);
 }
 
-// Converts a /60 overall score into a letter grade
-export function letterGrade(score: number): string {
-  if (score >= 48) return "A";
-  if (score >= 42) return "B";
-  if (score >= 30) return "C";
-  if (score >= 18) return "D";
+// Final grade combines how much health survived with the answer-quality score: health above 60 caps
+// an A/B, health 30-60 caps a C/D, and hitting 0 (or dropping below 30 without hitting exactly 0) is
+// an automatic F regardless of how sharp the answers were
+export function combinedGrade(total: number, health: number): string {
+  const strong = total >= 30;
+  if (health > 60) return strong ? "A" : "B";
+  if (health >= 30) return strong ? "C" : "D";
   return "F";
 }

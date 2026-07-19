@@ -1,11 +1,16 @@
 import { useCallback, useState } from "react";
-import type { PitcheratorStage, Scorecard } from "../types/pitcherator";
+import type { AnswerReviewItem, PitcheratorStage, Scorecard } from "../types/pitcherator";
 import type { AnswerTier, ArenaRound } from "../types/arena";
 import type { PersonalityConfig } from "../types/investor";
 import { fetchGroqJSON } from "../lib/groq";
-import { buildOpeningPrompt, buildRoundContent, buildRoundPrompt, SCORECARD_PROMPT } from "../lib/interrogationPrompts";
+import { ANSWER_REVIEW_PROMPT, buildOpeningPrompt, buildRoundContent, buildRoundPrompt, SCORECARD_PROMPT } from "../lib/interrogationPrompts";
 
 type RoundResult = { tier: AnswerTier; reaction: string; nextQuestion: string };
+
+const NO_ANSWER_REVIEW: Pick<AnswerReviewItem, "corrected" | "note"> = {
+  corrected: "Prepare a specific, structured answer in advance so you're not caught silent when the clock runs out.",
+  note: "No answer was given before time ran out.",
+};
 
 // Drives the endless interrogation: fetch one opening question, then after every answer fetch both
 // the judgment of that answer AND the next question in a single Groq call (so the investor can
@@ -14,6 +19,7 @@ export function usePitcherator() {
   const [stage, setStage] = useState<PitcheratorStage>("idle");
   const [currentQuestion, setCurrentQuestion] = useState("");
   const [scorecard, setScorecard] = useState<Scorecard | null>(null);
+  const [answerReview, setAnswerReview] = useState<AnswerReviewItem[] | null>(null);
   const [failed, setFailed] = useState(false);
   const [pitchTranscript, setPitchTranscript] = useState("");
 
@@ -64,14 +70,37 @@ export function usePitcherator() {
     }
   }, []);
 
+  // Builds the "What Went Wrong" answer comparisons: sends every answered (non-timeout) round to Groq
+  // for a structure/clarity-only rewrite, then merges the results back in round order, filling in a
+  // fixed fallback for any round the founder ran out the clock on
+  const generateAnswerReview = useCallback(async (rounds: ArenaRound[]) => {
+    const answered = rounds.filter((r) => r.tier !== "timeout" && r.answer.trim());
+    if (!answered.length) {
+      setAnswerReview(rounds.map((r) => ({ question: r.question, answer: r.answer, ...NO_ANSWER_REVIEW })));
+      return;
+    }
+    const qa = answered.map((r, i) => `Q${i + 1}: ${r.question}\nA${i + 1}: ${r.answer}`).join("\n\n");
+    const data = await fetchGroqJSON<{ reviews: { note: string; corrected: string }[] }>(ANSWER_REVIEW_PROMPT, qa, 900);
+    const reviews = data?.reviews ?? [];
+    let i = 0;
+    const merged = rounds.map((r) => {
+      if (r.tier === "timeout" || !r.answer.trim()) return { question: r.question, answer: r.answer, ...NO_ANSWER_REVIEW };
+      const rev = reviews[i];
+      i += 1;
+      return { question: r.question, answer: r.answer, corrected: rev?.corrected ?? r.answer, note: rev?.note ?? "" };
+    });
+    setAnswerReview(merged);
+  }, []);
+
   // Resets the whole flow back to idle
   const reset = useCallback(() => {
     setStage("idle");
     setCurrentQuestion("");
     setScorecard(null);
+    setAnswerReview(null);
     setFailed(false);
     setPitchTranscript("");
   }, []);
 
-  return { stage, currentQuestion, scorecard, failed, pitchTranscript, start, playRound, generateScorecard, reset };
+  return { stage, currentQuestion, scorecard, answerReview, failed, pitchTranscript, start, playRound, generateScorecard, generateAnswerReview, reset };
 }

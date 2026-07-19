@@ -12,6 +12,7 @@ type Props = {
   compact?: boolean;
   fill?: boolean;
   intensity?: number;
+  isSpeaking?: boolean;
 };
 
 // Top ~60%-of-screen stage: the big looming interrogation mask, a soft blue "processing" outline while
@@ -19,7 +20,7 @@ type Props = {
 // answer, red = weak answer). Shrinks to a small watching presence once `compact` (the scorecard phase),
 // or surges to fill the viewport once `fill` (the game-over sequence). Capped at 250px tall on mobile
 // unless filling, so the mask stays present without dominating a small screen.
-export default function MaskStage({ state, attackTrigger, flash, flashKey, compact = false, fill = false, intensity = 1 }: Props) {
+export default function MaskStage({ state, attackTrigger, flash, flashKey, compact = false, fill = false, intensity = 1, isSpeaking = false }: Props) {
   return (
     <motion.div
       className={fill ? "relative flex w-full shrink-0 items-center justify-center" : "relative flex w-full shrink-0 items-center justify-center max-h-[250px] sm:max-h-none"}
@@ -35,7 +36,7 @@ export default function MaskStage({ state, attackTrigger, flash, flashKey, compa
       />
       <div className="h-full w-full max-w-2xl">
         <Suspense fallback={null}>
-          <ArenaMaskScene state={state} attackTrigger={attackTrigger} intensity={intensity} />
+          <ArenaMaskScene state={state} attackTrigger={attackTrigger} intensity={intensity} isSpeaking={isSpeaking} />
         </Suspense>
       </div>
 

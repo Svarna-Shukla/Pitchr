@@ -1,10 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
-// Wraps the Web Speech API to capture live voice and build a running transcript
+// Wraps the Web Speech API to capture live voice and build a running transcript. Most mobile
+// browsers other than Chrome on Android don't implement SpeechRecognition at all, so callers must
+// check `supported` and keep a text-input fallback visible regardless.
 export function useSpeech() {
   const [transcript, setTranscript] = useState("");
   const [isListening, setIsListening] = useState(false);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const supported = typeof window !== "undefined" && !!(window.SpeechRecognition || window.webkitSpeechRecognition);
 
   useEffect(() => {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -35,5 +38,5 @@ export function useSpeech() {
     setIsListening(false);
   }, []);
 
-  return { transcript, isListening, start, stop };
+  return { transcript, isListening, start, stop, supported };
 }

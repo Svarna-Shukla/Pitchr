@@ -44,6 +44,14 @@ Ratings are integers 0-10. Suggestions are exactly 3 specific, actionable improv
 
 Q&A:`;
 
+// Powers the post-game-over "What Went Wrong" screen: rewrites each answer for structure/clarity only,
+// never introducing new content, so the correction still reads as the founder's own words cleaned up
+export const ANSWER_REVIEW_PROMPT = `You are a writing editor improving how a founder answered investor questions. For each Q&A pair, rewrite ONLY the founder's own answer for structure, clarity, and coherence — do not add new facts or ideas, and do not replace it with a different answer. If they jumped between ideas, organize those same ideas into a logical flow. If they were vague, add specificity to what they already implied. If they repeated themselves, tighten it. Keep each rewrite close in length to the original. Return JSON only, no markdown, with this exact shape:
+{"reviews":[{"note":"one short sentence naming the specific weakness, e.g. 'Jumped between ideas without connecting them.' or 'Too vague, no specific numbers or examples.'","corrected":"the same answer, rewritten only for structure/clarity/coherence"}]}
+Return exactly one review object per Q&A pair given, in the same order.
+
+Q&A pairs:`;
+
 // The very first question of a session — no history yet, always basic difficulty
 export function buildOpeningPrompt(personality: PersonalityConfig): string {
   return `You are a startup investor about to grill a founder. ${personality.promptStyle}
