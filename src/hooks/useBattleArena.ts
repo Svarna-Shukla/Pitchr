@@ -107,7 +107,7 @@ export function useBattleArena() {
       const result = await pitcherator.playRound(text, isTimeout, personality, rounds, nextRoundNumber);
       if (!result) return;
       const finalHealth = health.applyResult(result.tier);
-      const round: ArenaRound = { question, answer: isTimeout ? "" : text, tier: result.tier, reaction: result.reaction };
+      const round: ArenaRound = { question, answer: isTimeout && !text.trim() ? "" : text, tier: result.tier, reaction: result.reaction };
       setRounds((r) => [...r, round]);
       setLastResult({ tier: result.tier, reaction: result.reaction });
       voice.speak(pickVoiceLine(personality, result.tier));
@@ -170,7 +170,8 @@ export function useBattleArena() {
             ? "winning"
             : lastResult
               ? tierToMaskState(lastResult.tier)
-              : "idle"
+              // Still awaiting the Groq judgment call — the mask stays in listening mode rather than idle
+              : "listening"
           : "idle";
 
   return {

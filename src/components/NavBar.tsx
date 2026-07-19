@@ -11,7 +11,6 @@ type Props = {
   onTabChange: (tab: NavTab) => void;
   theme: Theme;
   onToggleTheme: () => void;
-  deckLocked: boolean;
 };
 
 const TABS: { id: NavTab; label: string; icon: typeof LayoutGrid }[] = [
@@ -23,7 +22,7 @@ const TABS: { id: NavTab; label: string; icon: typeof LayoutGrid }[] = [
 
 // Fixed top nav: logo + tagline, the Arena / Deck / Founder Kit / Battle Card tab bar with a sliding
 // indicator, theme toggle. Sits above the Arena's fullscreen overlay (z-50) so tabs stay clickable.
-export default function NavBar({ activeTab, onTabChange, theme, onToggleTheme, deckLocked }: Props) {
+export default function NavBar({ activeTab, onTabChange, theme, onToggleTheme }: Props) {
   const isDark = theme === "dark";
 
   // Very slight perspective lift as the page scrolls, so the nav feels like it rises off the page
@@ -59,14 +58,11 @@ export default function NavBar({ activeTab, onTabChange, theme, onToggleTheme, d
         {TABS.map((tab) => {
           const Icon = tab.icon;
           const active = tab.id === activeTab;
-          const locked = tab.id === "deck" && deckLocked;
           return (
             <button
               key={tab.id}
-              onClick={() => !locked && onTabChange(tab.id)}
-              className={`relative flex min-h-11 items-center gap-1.5 rounded-lg px-2.5 py-2 text-sm font-semibold transition sm:px-3 sm:py-1.5 ${
-                locked ? "pointer-events-none opacity-40" : ""
-              }`}
+              onClick={() => onTabChange(tab.id)}
+              className="relative flex min-h-11 items-center gap-1.5 rounded-lg px-2.5 py-2 text-sm font-semibold transition sm:px-3 sm:py-1.5"
               style={{ color: active ? "var(--color-accent)" : isDark ? "var(--color-text-secondary)" : "var(--color-text-secondary-light)" }}
             >
               {active && (

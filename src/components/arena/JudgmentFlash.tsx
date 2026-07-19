@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import type { AnswerTier } from "../../types/arena";
 import Button from "../Button";
 
-type Props = { tier: AnswerTier; reaction: string; isLosing: boolean; failed: boolean; onRetry: () => void };
+type Props = { tier: AnswerTier; reaction: string; isAnalyzing: boolean; isLosing: boolean; failed: boolean; onRetry: () => void };
 
 const TIER_BORDER: Record<AnswerTier, string> = { strong: "#4ade80", average: "#facc15", weak: "#f87171", timeout: "#991b1b" };
 const HOLD_MS = 3500;
@@ -14,7 +14,7 @@ const FADE_MS = 500;
 // The parent only advances to the next attack once this whole window has elapsed, so the next
 // question never starts typing over a comment that's still fading. Falls back to a retry prompt if
 // the round's Groq call failed outright.
-export default function JudgmentFlash({ tier, reaction, isLosing, failed, onRetry }: Props) {
+export default function JudgmentFlash({ tier, reaction, isAnalyzing, isLosing, failed, onRetry }: Props) {
   const [fading, setFading] = useState(false);
 
   // Starts the hold-then-fade timer fresh every time a new reaction comes in
@@ -40,7 +40,9 @@ export default function JudgmentFlash({ tier, reaction, isLosing, failed, onRetr
       transition={{ duration: FADE_MS / 1000, ease: "easeInOut" }}
     >
       <div className="rounded-2xl border bg-black/50 px-6 py-5 backdrop-blur-md" style={{ borderColor: `${TIER_BORDER[tier]}44` }}>
-        <p className="max-w-md text-xl font-black leading-snug text-white sm:text-2xl">{reaction || "…"}</p>
+        <p className="max-w-md text-xl font-black leading-snug text-white sm:text-2xl">
+          {isAnalyzing ? "Analyzing…" : reaction || "…"}
+        </p>
       </div>
       {isLosing && (
         <motion.p className="text-sm font-semibold text-red-500" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}>

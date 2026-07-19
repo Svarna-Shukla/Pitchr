@@ -3,7 +3,10 @@ import type { AnswerTier } from "../types/arena";
 
 const MAX_HEALTH = 100;
 const START_HEALTH = 100;
-const DELTAS: Record<AnswerTier, number> = { strong: 8, average: -8, weak: -20, timeout: -30 };
+// "average" is intentionally mildly positive, not punishing: the round prompt's own rubric expects
+// most real founders to land in the 4-7 (average) score band, so treating that band as a health loss
+// meant the bar drained on almost every answer regardless of how the founder actually did
+const DELTAS: Record<AnswerTier, number> = { strong: 8, average: 2, weak: -18, timeout: -25 };
 const STREAK_BONUS = 15;
 const CRITICAL_PENALTY = -40;
 const STREAK_LENGTH = 3;

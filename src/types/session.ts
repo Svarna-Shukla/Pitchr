@@ -1,5 +1,5 @@
-import type { Slide } from "./slide";
 import type { FounderKit } from "./founderKit";
+import type { Slide } from "./slide";
 
 export type SessionRecord = {
   id: string;
@@ -10,3 +10,5 @@ export type SessionRecord = {
   grade?: string;
   questionsSurvived?: number;
 };
+
+// This type represents a single session record in the database, including its slides, optional founder kit, and optional health/grade information.

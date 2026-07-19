@@ -11,6 +11,7 @@ const PAGE_W = 960;
 const PAGE_H = 540; // true 16:9 landscape
 const CAPTURE_W = 1920;
 const CAPTURE_H = 1080;
+const CAPTURE_TIMEOUT_MS = 15000;
 
 type RGB = [number, number, number];
 
@@ -21,7 +22,10 @@ function nextPaint(): Promise<void> {
 }
 
 // Mounts one slide off-screen at fixed capture dimensions (the same PremiumSlide Presentation Mode
-// renders, so the PDF is byte-for-byte what's on screen), rasterizes it, and returns a PNG data URL
+// renders, so the PDF is byte-for-byte what's on screen), rasterizes it, and returns a JPEG data URL.
+// JPEG (not PNG) is deliberate: jsPDF embeds PNG image data almost uncompressed, which blows a 6-slide
+// deck up to tens of megabytes — these slides are opaque and mostly flat colour, so JPEG at high
+// quality is visually lossless here while producing a file over an order of magnitude smaller.
 async function captureSlide(slide: Slide, index: number, total: number): Promise<string> {
   const container = document.createElement("div");
   container.style.position = "fixed";
@@ -31,18 +35,23 @@ async function captureSlide(slide: Slide, index: number, total: number): Promise
   container.style.height = `${CAPTURE_H}px`;
   document.body.appendChild(container);
 
-  console.log(`[pdf-debug] slide ${index} mount start`);
-  const root = createRoot(container);
-  root.render(createElement(PremiumSlide, { slide, index, total, context: "pdf" }));
-  await nextPaint();
-  console.log(`[pdf-debug] slide ${index} painted, starting html2canvas`);
+  try {
+    const root = createRoot(container);
+    root.render(createElement(PremiumSlide, { slide, index, total, context: "pdf" }));
+    await nextPaint();
 
-  const canvas = await html2canvas(container, { backgroundColor: "#0a0a0a" });
-  console.log(`[pdf-debug] slide ${index} html2canvas done`);
-  root.unmount();
-  document.body.removeChild(container);
-  console.log(`[pdf-debug] slide ${index} cleaned up`);
-  return canvas.toDataURL("image/png");
+    // html2canvas occasionally never settles on a given element (an upstream quirk, not tied to
+    // any particular slide layout) — race it against a timeout so one bad slide can't hang the
+    // whole export forever
+    const canvas = await Promise.race([
+      html2canvas(container, { backgroundColor: "#0a0a0a" }),
+      new Promise<never>((_, reject) => setTimeout(() => reject(new Error(`Slide ${index + 1} capture timed out`)), CAPTURE_TIMEOUT_MS)),
+    ]);
+    root.unmount();
+    return canvas.toDataURL("image/jpeg", 0.92);
+  } finally {
+    container.remove();
+  }
 }
 
 // Renders every slide as its own 16:9 page by rasterizing the live PremiumSlide component (charts,
@@ -54,7 +63,7 @@ export async function exportSlidesToPdf(slides: Slide[]): Promise<void> {
   for (let i = 0; i < slides.length; i++) {
     const dataUrl = await captureSlide(slides[i], i, slides.length);
     if (i > 0) doc.addPage([PAGE_W, PAGE_H], "landscape");
-    doc.addImage(dataUrl, "PNG", 0, 0, PAGE_W, PAGE_H);
+    doc.addImage(dataUrl, "JPEG", 0, 0, PAGE_W, PAGE_H);
   }
   doc.save("pitchr-pitch-deck.pdf");
 }

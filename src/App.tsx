@@ -43,10 +43,11 @@ export default function App() {
   const [showSessions, setShowSessions] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [kitInput, setKitInput] = useState("");
+  const [deckInput, setDeckInput] = useState("");
   const savedRef = useRef(false);
   const generatingDeckFromArena = useRef(false);
   const kitSeededRef = useRef(false);
-  const deckLocked = arena.phase !== "scorecard" || arena.isPartial;
+  const deckSeededRef = useRef(false);
 
   // Saves the finished deck to session history exactly once per generation. When the deck came from
   // a completed (non-partial) Battle Arena run, also records the health/grade/questions-survived that
@@ -78,6 +79,16 @@ export default function App() {
       kitSeededRef.current = true;
     }
   }, [claude.lastInput, arena.phase, arena.pitchTranscript, arena.rounds, kitInput]);
+
+  // Seeds the standalone Deck tab's textarea from any Arena transcript already in progress or
+  // completed — never overwrites text the founder already typed or pasted directly into the Deck tab
+  useEffect(() => {
+    if (deckSeededRef.current || deckInput) return;
+    if (arena.pitchTranscript) {
+      setDeckInput(buildArenaTranscript(arena.pitchTranscript, arena.rounds));
+      deckSeededRef.current = true;
+    }
+  }, [arena.pitchTranscript, arena.rounds, deckInput]);
 
   // Once the deck finishes generating, automatically scans for competitors from the same source text
   useEffect(() => {
@@ -122,11 +133,23 @@ export default function App() {
     claude.regenerateWithFeedback(arena.pitchTranscript, arena.rounds, arena.scorecard.suggestions);
   };
 
-  // Downloads the current deck as a PDF, rasterizing each slide off-screen — can take a few seconds
+  // Builds the deck straight from whatever's in the Deck tab's own textarea — no Arena session
+  // required, this is the standalone entry point into deck generation
+  const handleGenerateDeckStandalone = () => {
+    if (!deckInput.trim()) return;
+    generatingDeckFromArena.current = false;
+    claude.generate(deckInput);
+  };
+
+  // Downloads the current deck as a PDF, rasterizing each slide off-screen — can take a few seconds.
+  // Each slide capture is individually timeout-guarded (see exportSlidesToPdf), so a stuck capture
+  // surfaces as a caught error here instead of leaving the Export button spinning forever.
   const handleExport = async () => {
     setExporting(true);
     try {
       await exportSlidesToPdf(claude.slides);
+    } catch (err) {
+      console.error("Deck PDF export failed:", err);
     } finally {
       setExporting(false);
     }
@@ -152,6 +175,8 @@ export default function App() {
     savedRef.current = false;
     setKitInput("");
     kitSeededRef.current = false;
+    setDeckInput("");
+    deckSeededRef.current = false;
   };
 
   const isDark = themeState.theme === "dark";
@@ -169,7 +194,6 @@ export default function App() {
         onTabChange={handleTabChange}
         theme={themeState.theme}
         onToggleTheme={themeState.toggle}
-        deckLocked={deckLocked}
       />
 
       <div className="relative z-10 flex-1 pt-20">
@@ -197,6 +221,11 @@ export default function App() {
             competitors={competitorRadar.competitors}
             isCompetitorsGenerating={competitorRadar.isGenerating}
             competitorsFailed={competitorRadar.failed}
+            input={deckInput}
+            onInputChange={setDeckInput}
+            onGenerate={handleGenerateDeckStandalone}
+            isGenerating={claude.isGenerating}
+            failed={claude.failed}
           />
         )}
         {activeTab === "kit" && (

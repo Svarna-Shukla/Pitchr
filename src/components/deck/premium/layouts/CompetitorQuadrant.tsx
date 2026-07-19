@@ -28,6 +28,20 @@ export default function CompetitorQuadrant({ slide, context }: LayoutProps) {
               {q.yAxisLabel}
             </text>
 
+            {/* Four small quadrant corner labels naming each end of both axes */}
+            <text x={MARGIN + 4} y={MARGIN - 8} textAnchor="start" fill="#ffffffaa" fontSize={8} fontWeight={600}>
+              High {q.yAxisLabel}
+            </text>
+            <text x={MARGIN + 4} y={SIZE - MARGIN + 16} textAnchor="start" fill="#ffffffaa" fontSize={8} fontWeight={600}>
+              Low {q.yAxisLabel}
+            </text>
+            <text x={SIZE - MARGIN} y={SIZE / 2 - 8} textAnchor="end" fill="#ffffffaa" fontSize={8} fontWeight={600}>
+              High {q.xAxisLabel}
+            </text>
+            <text x={MARGIN} y={SIZE / 2 - 8} textAnchor="start" fill="#ffffffaa" fontSize={8} fontWeight={600}>
+              Low {q.xAxisLabel}
+            </text>
+
             {q.points.map((p, i) => {
               const cx = MARGIN + (p.x / 100) * PLOT;
               const cy = SIZE - MARGIN - (p.y / 100) * PLOT;

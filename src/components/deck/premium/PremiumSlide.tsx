@@ -10,7 +10,7 @@ const PADDING: Record<SlideContext, string> = { grid: "p-6", fullscreen: "p-12",
 // The forced-dark shell every deck slide shares (background, padding, 16:9 frame, footer index/mark),
 // regardless of the app's own light/dark theme toggle — content is delegated to SlideLayout per layoutType
 export default function PremiumSlide({ slide, index, total, context }: Props) {
-  const background = slide.layoutType === "problem" ? "#110000" : PREMIUM_BG;
+  const background = slide.layoutType === "problem" ? "#0d0000" : PREMIUM_BG;
 
   return (
     <div

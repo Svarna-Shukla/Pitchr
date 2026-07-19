@@ -25,7 +25,12 @@ export function buildRoundPrompt(personality: PersonalityConfig, roundNumber: nu
   return `You are a startup investor grilling a founder. ${personality.promptStyle}
 ${DIFFICULTY_GUIDANCE[tier]}
 
-You will be given the founder's original pitch, the full history of questions/answers so far, and their latest answer. Reference specific things they said earlier if relevant — call out contradictions, vague language, or filler words directly. Evaluate the latest answer strictly: a strong answer has specific details, numbers, or clear logic; a weak answer is vague, evasive, or off topic. Return JSON only, no markdown, with this exact shape:
+You will be given the founder's original pitch, the full history of questions/answers so far, and their latest answer. Reference specific things they said earlier if relevant — call out contradictions, vague language, or filler words directly. Evaluate the latest answer fairly and realistically:
+- Score 8-10: specific, addresses the question directly, backed by logic or data
+- Score 5-7: relevant and reasonable but could be more specific
+- Score 3-4: vague or only partially addresses the question
+- Score 1-2: completely off topic, evasive, or nonsensical
+Most real founders' answers land between 4 and 7 — reserve a score below 3 for answers that are truly terrible, and reserve 8+ for answers that are genuinely impressive with specifics. Return JSON only, no markdown, with this exact shape:
 {"score":1-10,"reaction":"1-2 sentence in-character reaction to their latest answer","nextQuestion":"the next brutal question to ask"}
 "score" is an integer 1-10 grading how well the latest answer defended the pitch.`;
 }

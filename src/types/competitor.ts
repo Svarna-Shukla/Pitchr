@@ -6,3 +6,5 @@ export type Competitor = {
   weakness: string;
   threat: ThreatLevel;
 };
+
+// competitor threat level analysis

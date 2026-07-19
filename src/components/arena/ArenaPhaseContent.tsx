@@ -47,6 +47,7 @@ export default function ArenaPhaseContent({ arena, isListening, transcript, audi
         <JudgmentFlash
           tier={arena.lastResult?.tier ?? "average"}
           reaction={arena.lastResult?.reaction ?? ""}
+          isAnalyzing={!arena.lastResult}
           isLosing={arena.isLosing}
           failed={arena.failed}
           onRetry={arena.fightAgain}

@@ -55,12 +55,15 @@ export function usePitcherator() {
   }, []);
 
   // Judges the answer just given (or a timeout) against the full history and fetches the next question,
-  // all in one call so the investor's tone can reference earlier rounds
+  // all in one call so the investor's tone can reference earlier rounds. A timeout with nothing typed
+  // is judged as a hard "timeout" tier; a timeout where the founder got a partial answer down before
+  // the clock ran out is graded on its own merits like any other answer, not auto-penalized
   const playRound = useCallback(
     async (answer: string, isTimeout: boolean, personality: PersonalityConfig, history: ArenaRound[], roundNumber: number): Promise<RoundResult | null> => {
       setFailed(false);
+      const silentTimeout = isTimeout && !answer.trim();
       const prompt = buildRoundPrompt(personality, roundNumber);
-      const content = buildRoundContent(pitchTranscript, history, currentQuestion, answer, isTimeout);
+      const content = buildRoundContent(pitchTranscript, history, currentQuestion, answer, silentTimeout);
       const data = await fetchGroqJSON<{ score: unknown; reaction: string; nextQuestion: string }>(prompt, content, 400);
       if (!data) {
         setFailed(true);
@@ -69,7 +72,7 @@ export function usePitcherator() {
       // A malformed or missing score (bad JSON shape, not a total fetch failure) defaults to a
       // middling 5/average rather than failing the whole round
       const score = typeof data.score === "number" && data.score >= 1 && data.score <= 10 ? data.score : 5;
-      const tier: AnswerTier = isTimeout ? "timeout" : scoreToTier(score);
+      const tier: AnswerTier = silentTimeout ? "timeout" : scoreToTier(score);
       setCurrentQuestion(data.nextQuestion);
       return { tier, reaction: data.reaction, nextQuestion: data.nextQuestion };
     },
