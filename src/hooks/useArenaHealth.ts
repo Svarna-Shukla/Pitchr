@@ -3,7 +3,7 @@ import type { AnswerTier } from "../types/arena";
 
 const MAX_HEALTH = 100;
 const START_HEALTH = 100;
-const DELTAS: Record<AnswerTier, number> = { strong: 5, average: -10, weak: -20, timeout: -30 };
+const DELTAS: Record<AnswerTier, number> = { strong: 8, average: -8, weak: -20, timeout: -30 };
 const STREAK_BONUS = 15;
 const CRITICAL_PENALTY = -40;
 const STREAK_LENGTH = 3;
@@ -16,6 +16,9 @@ export type StreakEvent = { type: "fire" | "critical"; key: number } | null;
 export function useArenaHealth() {
   const [health, setHealthState] = useState(START_HEALTH);
   const [streakEvent, setStreakEvent] = useState<StreakEvent>(null);
+  // Positive while on a strong streak, negative while on a weak/timeout streak, 0 otherwise — lets a
+  // single small HUD counter show "current streak, whichever direction is active" without two fields
+  const [streakCount, setStreakCount] = useState(0);
   const healthRef = useRef(START_HEALTH);
   const strongStreak = useRef(0);
   const weakStreak = useRef(0);
@@ -39,27 +42,33 @@ export function useArenaHealth() {
         criticalArmed.current = false;
         strongStreak.current = 0;
         weakStreak.current = 0;
+        setStreakCount(0);
       } else if (tier === "strong") {
         weakStreak.current = 0;
         strongStreak.current += 1;
+        setStreakCount(strongStreak.current);
         if (strongStreak.current >= STREAK_LENGTH) {
           delta += STREAK_BONUS;
           strongStreak.current = 0;
+          setStreakCount(0);
           eventKey.current += 1;
           setStreakEvent({ type: "fire", key: eventKey.current });
         }
       } else if (tier === "weak" || tier === "timeout") {
         strongStreak.current = 0;
         weakStreak.current += 1;
+        setStreakCount(-weakStreak.current);
         if (weakStreak.current >= STREAK_LENGTH) {
           weakStreak.current = 0;
           criticalArmed.current = true;
+          setStreakCount(0);
           eventKey.current += 1;
           setStreakEvent({ type: "critical", key: eventKey.current });
         }
       } else {
         strongStreak.current = 0;
         weakStreak.current = 0;
+        setStreakCount(0);
       }
 
       const next = Math.max(0, Math.min(MAX_HEALTH, healthRef.current + delta));
@@ -73,10 +82,11 @@ export function useArenaHealth() {
   const reset = useCallback(() => {
     setHealth(START_HEALTH);
     setStreakEvent(null);
+    setStreakCount(0);
     strongStreak.current = 0;
     weakStreak.current = 0;
     criticalArmed.current = false;
   }, [setHealth]);
 
-  return { health, streakEvent, applyResult, reset, isGameOver: health <= 0 };
+  return { health, streakEvent, streakCount, applyResult, reset, isGameOver: health <= 0 };
 }

@@ -1,4 +1,4 @@
-import { Download, History, Play, RotateCcw } from "lucide-react";
+import { Download, History, Loader2, Play, RotateCcw } from "lucide-react";
 import type { Theme } from "../hooks/useTheme";
 
 type Props = {
@@ -39,7 +39,7 @@ export default function BottomBar({
           <Play className="h-4 w-4" /> Present
         </button>
         <button onClick={onExport} disabled={!hasSlides || exporting} className={base} style={{ color: textColor }}>
-          <Download className="h-4 w-4" /> {exporting ? "Exporting…" : "Export"}
+          {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />} {exporting ? "Exporting…" : "Export"}
         </button>
         {divider}
         <button onClick={onSessions} className={base} style={{ color: textColor }}>

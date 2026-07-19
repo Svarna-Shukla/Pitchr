@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { RotateCcw, Wand2 } from "lucide-react";
+import { ArrowLeft, RotateCcw, Wand2 } from "lucide-react";
 import type { Scorecard } from "../../types/pitcherator";
 import { overallScore, combinedGrade } from "../../lib/scoring";
 import Button from "../Button";
@@ -13,6 +13,8 @@ type Props = {
   health: number;
   questionsSurvived: number;
   personalityName: string;
+  hasReview: boolean;
+  onBackToReview: () => void;
   onFightAgain: () => void;
   onGenerateDeck: () => void;
   isGeneratingDeck: boolean;
@@ -21,7 +23,7 @@ type Props = {
 // Final phase of the arena: the pitch is over, either by choice or by 0 health. Reveals the grade and
 // 6-metric breakdown, then offers a rematch, a shareable result card, and — for a voluntary, full
 // session only — unlocking the Deck tab with a freshly generated deck built from the transcript.
-export default function ScorecardOverlay({ scorecard, isPartial, health, questionsSurvived, personalityName, onFightAgain, onGenerateDeck, isGeneratingDeck }: Props) {
+export default function ScorecardOverlay({ scorecard, isPartial, health, questionsSurvived, personalityName, hasReview, onBackToReview, onFightAgain, onGenerateDeck, isGeneratingDeck }: Props) {
   const total = overallScore(scorecard.ratings);
   const grade = combinedGrade(total, health);
 
@@ -32,6 +34,14 @@ export default function ScorecardOverlay({ scorecard, isPartial, health, questio
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
+      {isPartial && hasReview && (
+        <button
+          onClick={onBackToReview}
+          className="self-start text-xs font-semibold text-white/50 transition hover:text-white/80"
+        >
+          <ArrowLeft className="mr-1 inline h-3.5 w-3.5" /> Review My Answers
+        </button>
+      )}
       <h2 className="font-display text-2xl font-bold text-white">{isPartial ? "Here's What Went Wrong" : "Pitch Complete"}</h2>
       <GradeReveal total={total} grade={grade} />
       <span className="rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-white/60">

@@ -33,7 +33,7 @@ export default function DeckPage({ slides, theme, competitors, isCompetitorsGene
   return (
     <div className="flex flex-col pb-28 pt-10">
       <DeckDivider theme={theme} />
-      <SlideDeckRow slides={slides} theme={theme} />
+      <SlideDeckRow slides={slides} />
       <motion.div className="mt-8" {...revealOnScroll}>
         <CompetitorRadarPanel competitors={competitors} isGenerating={isCompetitorsGenerating} failed={competitorsFailed} theme={theme} />
       </motion.div>

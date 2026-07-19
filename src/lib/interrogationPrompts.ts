@@ -25,9 +25,9 @@ export function buildRoundPrompt(personality: PersonalityConfig, roundNumber: nu
   return `You are a startup investor grilling a founder. ${personality.promptStyle}
 ${DIFFICULTY_GUIDANCE[tier]}
 
-You will be given the founder's original pitch, the full history of questions/answers so far, and their latest answer. Reference specific things they said earlier if relevant — call out contradictions, vague language, or filler words directly. Return JSON only, no markdown, with this exact shape:
-{"tier":"strong"|"average"|"weak","reaction":"1-2 sentence in-character reaction to their latest answer","nextQuestion":"the next brutal question to ask"}
-"tier" grades how well the latest answer defended the pitch.`;
+You will be given the founder's original pitch, the full history of questions/answers so far, and their latest answer. Reference specific things they said earlier if relevant — call out contradictions, vague language, or filler words directly. Evaluate the latest answer strictly: a strong answer has specific details, numbers, or clear logic; a weak answer is vague, evasive, or off topic. Return JSON only, no markdown, with this exact shape:
+{"score":1-10,"reaction":"1-2 sentence in-character reaction to their latest answer","nextQuestion":"the next brutal question to ask"}
+"score" is an integer 1-10 grading how well the latest answer defended the pitch.`;
 }
 
 // Builds the data half of the per-round prompt: the original pitch, prior rounds, and the answer just given
@@ -44,13 +44,23 @@ Ratings are integers 0-10. Suggestions are exactly 3 specific, actionable improv
 
 Q&A:`;
 
-// Powers the post-game-over "What Went Wrong" screen: rewrites each answer for structure/clarity only,
-// never introducing new content, so the correction still reads as the founder's own words cleaned up
-export const ANSWER_REVIEW_PROMPT = `You are a writing editor improving how a founder answered investor questions. For each Q&A pair, rewrite ONLY the founder's own answer for structure, clarity, and coherence — do not add new facts or ideas, and do not replace it with a different answer. If they jumped between ideas, organize those same ideas into a logical flow. If they were vague, add specificity to what they already implied. If they repeated themselves, tighten it. Keep each rewrite close in length to the original. Return JSON only, no markdown, with this exact shape:
-{"reviews":[{"note":"one short sentence naming the specific weakness, e.g. 'Jumped between ideas without connecting them.' or 'Too vague, no specific numbers or examples.'","corrected":"the same answer, rewritten only for structure/clarity/coherence"}]}
+// Powers the post-game-over "What Went Wrong" screen: rewrites each answer to be clearer, more
+// structured, and more convincing, using the founder's own core ideas — never a different answer
+export const ANSWER_REVIEW_PROMPT = `You are a pitch coach. For each Q&A pair below, the founder gave the answer to an investor question. Rewrite it to be clearer, more structured, and more convincing. Rules: keep the same core ideas the founder mentioned, do not add completely new information they did not say, fix rambling by organizing ideas logically, replace vague language with specific language, remove repetition, strengthen the opening sentence, add a clear conclusion. Return JSON only, no markdown, with this exact shape:
+{"reviews":[{"note":"one short sentence naming the specific weakness, e.g. 'Jumped between ideas without connecting them.' or 'Too vague, no specific numbers or examples.'","corrected":"the rewritten answer as plain text"}]}
 Return exactly one review object per Q&A pair given, in the same order.
 
 Q&A pairs:`;
+
+// Retries a single answer's rewrite in isolation, used when the batched rewrite above came back
+// too close to the original — forceDifferent appends an explicit instruction to diverge more
+export function buildSingleAnswerReviewPrompt(forceDifferent: boolean): string {
+  const base = `You are a pitch coach. The founder gave this answer to an investor question. Rewrite it to be clearer, more structured, and more convincing. Rules: keep the same core ideas the founder mentioned, do not add completely new information they did not say, fix rambling by organizing ideas logically, replace vague language with specific language, remove repetition, strengthen the opening sentence, add a clear conclusion.`;
+  const forceLine = forceDifferent ? " The rewrite must be significantly different in structure and clarity from the original." : "";
+  return `${base}${forceLine} Return JSON only, no markdown, with this exact shape: {"corrected":"the rewritten answer as plain text"}
+
+Answer:`;
+}
 
 // The very first question of a session — no history yet, always basic difficulty
 export function buildOpeningPrompt(personality: PersonalityConfig): string {

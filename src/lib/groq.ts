@@ -1,5 +1,9 @@
 const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
-const MODEL = "llama-3.1-8b-instant";
+
+// The two models used across the app: fast for latency-sensitive arena Q&A, quality for
+// one-shot generation (deck, founder kit, competitor research) where thoroughness matters more
+export const GROQ_MODELS = { fast: "llama-3.1-8b-instant", quality: "llama-3.3-70b-versatile" } as const;
+type GroqModel = (typeof GROQ_MODELS)[keyof typeof GROQ_MODELS];
 
 let warnedMissingKey = false;
 
@@ -14,7 +18,8 @@ function extractJson(text: string): string | null {
 export async function fetchGroqJSON<T>(
   prompt: string,
   userContent: string,
-  maxTokens = 512
+  maxTokens = 512,
+  model: GroqModel = GROQ_MODELS.fast
 ): Promise<T | null> {
   const apiKey = import.meta.env.VITE_GROQ_API_KEY;
   if (!apiKey) {
@@ -32,7 +37,7 @@ export async function fetchGroqJSON<T>(
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: MODEL,
+        model,
         max_tokens: maxTokens,
         messages: [{ role: "user", content: `${prompt}\n\n${userContent}` }],
       }),

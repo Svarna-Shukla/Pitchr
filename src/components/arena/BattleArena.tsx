@@ -38,7 +38,7 @@ export default function BattleArena(props: Props) {
   return (
     <ArenaLayout health={isLive ? arena.health : undefined}>
       {isLive && <PitchHealthBar health={arena.health} />}
-      {isLive && <RoundCounter roundNumber={arena.roundNumber} />}
+      {isLive && <RoundCounter roundNumber={arena.roundNumber} streakCount={arena.streakCount} />}
       {isLive && <StreakBadge streakEvent={arena.streakEvent} />}
       {isLive && <EndPitchButton onClick={arena.endPitch} />}
       {isLive && <SpeakerToggle enabled={arena.voiceEnabled} onToggle={arena.toggleVoice} />}

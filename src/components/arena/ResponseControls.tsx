@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Send } from "lucide-react";
 import HexMicButton from "./HexMicButton";
@@ -17,14 +17,17 @@ export default function ResponseControls({ visible, onSubmitAnswer }: Props) {
   const speech = useSpeech();
   const [typed, setTyped] = useState("");
 
-  // Stopping the mic submits whatever was transcribed immediately, mirroring a real spoken answer
+  // Mirrors the live voice transcript into the same controlled state the textarea uses, so the
+  // send button's `disabled={!typed.trim()}` check reacts to speech exactly like typing would
+  useEffect(() => {
+    if (speech.transcript) setTyped(speech.transcript);
+  }, [speech.transcript]);
+
+  // Stopping the mic just stops listening — the transcribed text is already sitting in the
+  // textarea (mirrored above) for the founder to review, edit, or send
   const handleToggleRecord = () => {
-    if (speech.isListening) {
-      speech.stop();
-      onSubmitAnswer(speech.transcript);
-    } else {
-      speech.start();
-    }
+    if (speech.isListening) speech.stop();
+    else speech.start();
   };
 
   // Submits the typed answer, ignoring empty submissions

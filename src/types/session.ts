@@ -6,4 +6,7 @@ export type SessionRecord = {
   createdAt: string;
   slides: Slide[];
   founderKit?: FounderKit | null;
+  healthRemaining?: number;
+  grade?: string;
+  questionsSurvived?: number;
 };

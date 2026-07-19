@@ -3,9 +3,26 @@ import type { AnswerReviewItem, PitcheratorStage, Scorecard } from "../types/pit
 import type { AnswerTier, ArenaRound } from "../types/arena";
 import type { PersonalityConfig } from "../types/investor";
 import { fetchGroqJSON } from "../lib/groq";
-import { ANSWER_REVIEW_PROMPT, buildOpeningPrompt, buildRoundContent, buildRoundPrompt, SCORECARD_PROMPT } from "../lib/interrogationPrompts";
+import {
+  ANSWER_REVIEW_PROMPT,
+  buildOpeningPrompt,
+  buildRoundContent,
+  buildRoundPrompt,
+  buildSingleAnswerReviewPrompt,
+  SCORECARD_PROMPT,
+} from "../lib/interrogationPrompts";
+import { similarity } from "../lib/textSimilarity";
+
+const SIMILARITY_THRESHOLD = 0.75;
 
 type RoundResult = { tier: AnswerTier; reaction: string; nextQuestion: string };
+
+// Maps the investor's strict 1-10 score onto the three health-affecting tiers
+function scoreToTier(score: number): AnswerTier {
+  if (score >= 7) return "strong";
+  if (score >= 4) return "average";
+  return "weak";
+}
 
 const NO_ANSWER_REVIEW: Pick<AnswerReviewItem, "corrected" | "note"> = {
   corrected: "Prepare a specific, structured answer in advance so you're not caught silent when the clock runs out.",
@@ -44,12 +61,15 @@ export function usePitcherator() {
       setFailed(false);
       const prompt = buildRoundPrompt(personality, roundNumber);
       const content = buildRoundContent(pitchTranscript, history, currentQuestion, answer, isTimeout);
-      const data = await fetchGroqJSON<{ tier: AnswerTier; reaction: string; nextQuestion: string }>(prompt, content, 400);
+      const data = await fetchGroqJSON<{ score: unknown; reaction: string; nextQuestion: string }>(prompt, content, 400);
       if (!data) {
         setFailed(true);
         return null;
       }
-      const tier: AnswerTier = isTimeout ? "timeout" : data.tier;
+      // A malformed or missing score (bad JSON shape, not a total fetch failure) defaults to a
+      // middling 5/average rather than failing the whole round
+      const score = typeof data.score === "number" && data.score >= 1 && data.score <= 10 ? data.score : 5;
+      const tier: AnswerTier = isTimeout ? "timeout" : scoreToTier(score);
       setCurrentQuestion(data.nextQuestion);
       return { tier, reaction: data.reaction, nextQuestion: data.nextQuestion };
     },
@@ -89,7 +109,18 @@ export function usePitcherator() {
       i += 1;
       return { question: r.question, answer: r.answer, corrected: rev?.corrected ?? r.answer, note: rev?.note ?? "" };
     });
-    setAnswerReview(merged);
+
+    // Re-issues any rewrite that came back too close to the original, forcing a more different
+    // structure — catches the case where the model barely touched a founder's answer
+    const strengthened = await Promise.all(
+      merged.map(async (item) => {
+        if (item.corrected === NO_ANSWER_REVIEW.corrected) return item;
+        if (similarity(item.answer, item.corrected) <= SIMILARITY_THRESHOLD) return item;
+        const retry = await fetchGroqJSON<{ corrected: string }>(buildSingleAnswerReviewPrompt(true), item.answer, 400);
+        return retry?.corrected ? { ...item, corrected: retry.corrected } : item;
+      })
+    );
+    setAnswerReview(strengthened);
   }, []);
 
   // Resets the whole flow back to idle

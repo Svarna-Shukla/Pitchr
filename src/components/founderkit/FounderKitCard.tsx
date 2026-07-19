@@ -1,10 +1,12 @@
+import { Download } from "lucide-react";
+import type { Theme } from "../../hooks/useTheme";
+import { exportSingleFounderKitDoc } from "../../lib/exportPdf";
 import CopyButton from "../CopyButton";
 import TiltCard from "../TiltCard";
-import type { Theme } from "../../hooks/useTheme";
 
 type Props = { label: string; content: string | string[]; theme: Theme };
 
-// Renders one Founder Kit document as a labelled card with a copy button
+// Renders one Founder Kit document as a labelled card with copy + single-page-PDF download buttons
 export default function FounderKitCard({ label, content, theme }: Props) {
   const text = Array.isArray(content) ? content.join("\n") : content;
   const isDark = theme === "dark";
@@ -16,7 +18,16 @@ export default function FounderKitCard({ label, content, theme }: Props) {
     >
       <div className="flex items-start justify-between gap-2">
         <h4 className="text-sm font-bold uppercase tracking-widest text-[color:var(--color-accent)]">{label}</h4>
-        <CopyButton getText={() => text} />
+        <div className="flex shrink-0 items-center gap-1">
+          <CopyButton getText={() => text} />
+          <button
+            onClick={() => exportSingleFounderKitDoc(label, content, theme)}
+            aria-label="Download as PDF"
+            className={`rounded-md p-1.5 transition hover:bg-white/10 ${isDark ? "text-white/40 hover:text-white" : "text-black/40 hover:text-black"}`}
+          >
+            <Download className="h-4 w-4" />
+          </button>
+        </div>
       </div>
       {Array.isArray(content) ? (
         <ul className="mt-3 space-y-2">
@@ -33,3 +44,4 @@ export default function FounderKitCard({ label, content, theme }: Props) {
     </TiltCard>
   );
 }
+

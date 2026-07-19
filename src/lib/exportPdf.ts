@@ -1,71 +1,61 @@
+import { createElement } from "react";
+import { createRoot } from "react-dom/client";
+import html2canvas from "html2canvas-pro";
 import { jsPDF } from "jspdf";
+import PremiumSlide from "../components/deck/premium/PremiumSlide";
 import type { Slide } from "../types/slide";
 import type { FounderKit } from "../types/founderKit";
 import type { Theme } from "../hooks/useTheme";
-import { slideColor, slideLabel, hexToRgb } from "./slideTheme";
 
 const PAGE_W = 960;
 const PAGE_H = 540; // true 16:9 landscape
+const CAPTURE_W = 1920;
+const CAPTURE_H = 1080;
 
 type RGB = [number, number, number];
 
-// Linearly blends two RGB colours, used to approximate a CSS gradient with flat jsPDF fills
-function mix(a: RGB, b: RGB, t: number): RGB {
-  return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
+// Waits two animation frames, letting React commit and layout (recharts' ResponsiveContainer in
+// particular) settle before the DOM is rasterized
+function nextPaint(): Promise<void> {
+  return new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
 }
 
-// Draws one slide's content onto the current PDF page, approximating the card's gradient with two flat tints
-function drawSlide(doc: jsPDF, slide: Slide, index: number, total: number, isDark: boolean) {
-  const accent = hexToRgb(slideColor(slide.type));
-  const bg: RGB = isDark ? [11, 11, 18] : [255, 255, 255];
-  const textPrimary: RGB = isDark ? [255, 255, 255] : [17, 17, 17];
-  const textSecondary: RGB = isDark ? [220, 220, 220] : [60, 60, 60];
-  const margin = 50;
+// Mounts one slide off-screen at fixed capture dimensions (the same PremiumSlide Presentation Mode
+// renders, so the PDF is byte-for-byte what's on screen), rasterizes it, and returns a PNG data URL
+async function captureSlide(slide: Slide, index: number, total: number): Promise<string> {
+  const container = document.createElement("div");
+  container.style.position = "fixed";
+  container.style.left = "-99999px";
+  container.style.top = "0";
+  container.style.width = `${CAPTURE_W}px`;
+  container.style.height = `${CAPTURE_H}px`;
+  document.body.appendChild(container);
 
-  doc.setFillColor(...mix(bg, accent, 0.06));
-  doc.rect(0, 0, PAGE_W, PAGE_H, "F");
-  doc.setFillColor(...mix(bg, accent, 0.22));
-  doc.triangle(0, 0, PAGE_W * 0.65, 0, 0, PAGE_H * 0.8, "F");
+  console.log(`[pdf-debug] slide ${index} mount start`);
+  const root = createRoot(container);
+  root.render(createElement(PremiumSlide, { slide, index, total, context: "pdf" }));
+  await nextPaint();
+  console.log(`[pdf-debug] slide ${index} painted, starting html2canvas`);
 
-  doc.setFillColor(...accent);
-  doc.rect(0, 0, 8, PAGE_H, "F");
-
-  doc.setFontSize(11);
-  doc.setTextColor(...accent);
-  doc.text(slideLabel(slide.type).toUpperCase(), margin, 70);
-
-  doc.setFontSize(30);
-  doc.setTextColor(...textPrimary);
-  doc.setFont("helvetica", "bold");
-  const titleLines = doc.splitTextToSize(slide.title, PAGE_W - margin * 2) as string[];
-  doc.text(titleLines, margin, 110);
-
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(15);
-  doc.setTextColor(...textSecondary);
-  let y = 110 + titleLines.length * 26 + 30;
-  for (const bullet of slide.bullets) {
-    doc.setFillColor(...accent);
-    doc.circle(margin + 3, y - 4, 2.5, "F");
-    const lines = doc.splitTextToSize(bullet, PAGE_W - margin * 2 - 20) as string[];
-    doc.text(lines, margin + 16, y);
-    y += lines.length * 19 + 10;
-  }
-
-  doc.setFontSize(9);
-  doc.setTextColor(...(isDark ? ([120, 120, 120] as RGB) : ([160, 160, 160] as RGB)));
-  doc.text("Pitchr", margin, PAGE_H - 24);
-  doc.text(`${String(index + 1).padStart(2, "0")} / ${String(total).padStart(2, "0")}`, PAGE_W - margin - 40, PAGE_H - 24);
+  const canvas = await html2canvas(container, { backgroundColor: "#0a0a0a" });
+  console.log(`[pdf-debug] slide ${index} html2canvas done`);
+  root.unmount();
+  document.body.removeChild(container);
+  console.log(`[pdf-debug] slide ${index} cleaned up`);
+  return canvas.toDataURL("image/png");
 }
 
-// Renders every slide as its own 16:9 page, matching the app's current theme, and downloads the deck as a PDF
-export function exportSlidesToPdf(slides: Slide[], theme: Theme = "dark") {
+// Renders every slide as its own 16:9 page by rasterizing the live PremiumSlide component (charts,
+// custom typography, and the forced dark palette all capture faithfully this way), one slide at a
+// time so captures never race each other, and downloads the deck as a PDF
+export async function exportSlidesToPdf(slides: Slide[]): Promise<void> {
+  await document.fonts.ready;
   const doc = new jsPDF({ orientation: "landscape", unit: "pt", format: [PAGE_W, PAGE_H] });
-  const isDark = theme === "dark";
-  slides.forEach((slide, i) => {
+  for (let i = 0; i < slides.length; i++) {
+    const dataUrl = await captureSlide(slides[i], i, slides.length);
     if (i > 0) doc.addPage([PAGE_W, PAGE_H], "landscape");
-    drawSlide(doc, slide, i, slides.length, isDark);
-  });
+    doc.addImage(dataUrl, "PNG", 0, 0, PAGE_W, PAGE_H);
+  }
   doc.save("pitchr-pitch-deck.pdf");
 }
 
@@ -107,10 +97,33 @@ export function exportFounderKitToPdf(kit: FounderKit, theme: Theme = "dark") {
     { label: "Value proposition", content: kit.valueProposition },
     { label: "GTM strategy", content: kit.gtmStrategy },
     { label: "Validation questions", content: kit.validationQuestions },
+    {
+      label: "SWOT analysis",
+      content: [
+        `Strengths: ${kit.swot.strengths.join("; ")}`,
+        `Weaknesses: ${kit.swot.weaknesses.join("; ")}`,
+        `Opportunities: ${kit.swot.opportunities.join("; ")}`,
+        `Threats: ${kit.swot.threats.join("; ")}`,
+      ],
+    },
+    { label: "Risk assessment", content: kit.riskAssessment },
+    { label: "Financial projections", content: kit.financialProjections },
+    { label: "Landing page copy", content: kit.landingPageCopy },
+    { label: "Investor email", content: kit.investorEmail },
+    { label: "Press release", content: kit.pressRelease },
+    { label: "LinkedIn announcement", content: kit.linkedinAnnouncement },
+    { label: "Narration script", content: kit.narrationScript },
   ];
   cards.forEach((card, i) => {
     if (i > 0) doc.addPage();
     drawFounderKitPage(doc, card.label, card.content, isDark);
   });
   doc.save("pitchr-founder-kit.pdf");
+}
+
+// Renders a single Founder Kit document as a one-page PDF (used by each card's individual download button)
+export function exportSingleFounderKitDoc(label: string, content: string | string[], theme: Theme = "dark") {
+  const doc = new jsPDF({ unit: "pt", format: "a4" });
+  drawFounderKitPage(doc, label, content, theme === "dark");
+  doc.save(`pitchr-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}.pdf`);
 }

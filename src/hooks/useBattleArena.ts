@@ -142,6 +142,10 @@ export function useBattleArena() {
   // Dismisses the "What Went Wrong" screen and reveals the full scorecard behind it
   const continueToScorecard = useCallback(() => setReviewAcknowledged(true), []);
 
+  // From the scorecard, returns to the "What Went Wrong" review — the review data was never
+  // discarded, `reviewAcknowledged` just gates which of the two screens is currently shown
+  const backToReview = useCallback(() => setReviewAcknowledged(false), []);
+
   // Flushes the battle entirely and returns to the personality-select step
   const fightAgain = useCallback(() => {
     setRounds([]);
@@ -183,6 +187,7 @@ export function useBattleArena() {
     failed: pitcherator.failed,
     health: health.health,
     streakEvent: health.streakEvent,
+    streakCount: health.streakCount,
     isLosing: health.health < LOSING_THRESHOLD,
     lastResult,
     maskState,
@@ -198,6 +203,7 @@ export function useBattleArena() {
     endPitch,
     viewPartialResults,
     continueToScorecard,
+    backToReview,
     fightAgain,
   };
 }

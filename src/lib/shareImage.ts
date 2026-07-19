@@ -17,14 +17,17 @@ export function generateShareCardDataUrl({ health, questionsSurvived, grade, per
   ctx.fillStyle = bg;
   ctx.fillRect(0, 0, WIDTH, HEIGHT);
 
-  ctx.textAlign = "center";
+  ctx.textAlign = "left";
   ctx.fillStyle = "#f0a020";
   ctx.font = "600 42px 'Space Grotesk', sans-serif";
-  ctx.fillText("PITCHR", WIDTH / 2, 160);
+  ctx.fillText("PITCHR", 60, 100);
 
+  ctx.textAlign = "center";
   ctx.fillStyle = "#a3a2a0";
   ctx.font = "400 32px sans-serif";
   ctx.fillText(`Grilled by ${personalityName}`, WIDTH / 2, 220);
+  ctx.font = "400 26px sans-serif";
+  ctx.fillText(new Date().toLocaleDateString(), WIDTH / 2, 260);
 
   ctx.fillStyle = "#f2f1ee";
   ctx.font = "900 340px 'Space Grotesk', sans-serif";

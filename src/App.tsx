@@ -20,6 +20,8 @@ import { useBattleArena } from "./hooks/useBattleArena";
 import { useSessions } from "./hooks/useSessions";
 import { useTheme } from "./hooks/useTheme";
 import { exportSlidesToPdf } from "./lib/exportPdf";
+import { buildArenaTranscript } from "./lib/text";
+import { combinedGrade, overallScore } from "./lib/scoring";
 import type { SessionRecord } from "./types/session";
 
 const ERROR_FALLBACK = <p className="p-10 text-sm text-red-400">Something went wrong — try Clear and start again.</p>;
@@ -40,17 +42,42 @@ export default function App() {
   const [showPresentation, setShowPresentation] = useState(false);
   const [showSessions, setShowSessions] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [kitInput, setKitInput] = useState("");
   const savedRef = useRef(false);
   const generatingDeckFromArena = useRef(false);
+  const kitSeededRef = useRef(false);
   const deckLocked = arena.phase !== "scorecard" || arena.isPartial;
 
-  // Saves the finished deck to session history exactly once per Battle Arena run
+  // Saves the finished deck to session history exactly once per generation. When the deck came from
+  // a completed (non-partial) Battle Arena run, also records the health/grade/questions-survived that
+  // produced it, so the Sessions panel can show them alongside the deck.
   useEffect(() => {
     if (!claude.isGenerating && claude.slides.length > 0 && !savedRef.current) {
-      sessions.save(claude.slides, founderKit.founderKit);
+      const fromArena = generatingDeckFromArena.current && arena.scorecard && !arena.isPartial;
+      const arenaStats = fromArena
+        ? {
+            healthRemaining: arena.health,
+            grade: combinedGrade(overallScore(arena.scorecard!.ratings), arena.health),
+            questionsSurvived: arena.rounds.length,
+          }
+        : undefined;
+      sessions.save(claude.slides, founderKit.founderKit, arenaStats);
       savedRef.current = true;
     }
-  }, [claude.isGenerating, claude.slides, founderKit.founderKit, sessions.save]);
+  }, [claude.isGenerating, claude.slides, founderKit.founderKit, sessions.save, arena.scorecard, arena.isPartial, arena.health, arena.rounds.length]);
+
+  // Seeds the Founder Kit input once from the deck transcript, or from a just-completed Battle
+  // Arena session's full pitch + Q&A — never overwrites text the founder already typed or pasted
+  useEffect(() => {
+    if (kitSeededRef.current || kitInput) return;
+    if (claude.lastInput) {
+      setKitInput(claude.lastInput);
+      kitSeededRef.current = true;
+    } else if (arena.phase === "scorecard" && arena.pitchTranscript) {
+      setKitInput(buildArenaTranscript(arena.pitchTranscript, arena.rounds));
+      kitSeededRef.current = true;
+    }
+  }, [claude.lastInput, arena.phase, arena.pitchTranscript, arena.rounds, kitInput]);
 
   // Once the deck finishes generating, automatically scans for competitors from the same source text
   useEffect(() => {
@@ -78,18 +105,15 @@ export default function App() {
       founderKit.reset();
       competitorRadar.reset();
       savedRef.current = false;
+      setKitInput("");
+      kitSeededRef.current = false;
       speech.start();
       audio.start();
     }
   };
 
-  // Switches tabs, lazily generating the Founder Kit the first time it's opened
-  const handleTabChange = (tab: NavTab) => {
-    setActiveTab(tab);
-    if (tab === "kit" && claude.lastInput && !founderKit.founderKit && !founderKit.isGenerating) {
-      founderKit.generate(claude.lastInput);
-    }
-  };
+  // Switches the active tab
+  const handleTabChange = (tab: NavTab) => setActiveTab(tab);
 
   // Builds the deck from the full 3-round battle transcript once the scorecard names a winner
   const handleGenerateDeck = () => {
@@ -98,11 +122,11 @@ export default function App() {
     claude.regenerateWithFeedback(arena.pitchTranscript, arena.rounds, arena.scorecard.suggestions);
   };
 
-  // Downloads the current deck as a PDF
-  const handleExport = () => {
+  // Downloads the current deck as a PDF, rasterizing each slide off-screen — can take a few seconds
+  const handleExport = async () => {
     setExporting(true);
     try {
-      exportSlidesToPdf(claude.slides, themeState.theme);
+      await exportSlidesToPdf(claude.slides);
     } finally {
       setExporting(false);
     }
@@ -126,6 +150,8 @@ export default function App() {
     competitorRadar.reset();
     arena.fightAgain();
     savedRef.current = false;
+    setKitInput("");
+    kitSeededRef.current = false;
   };
 
   const isDark = themeState.theme === "dark";
@@ -180,6 +206,9 @@ export default function App() {
               isGenerating={founderKit.isGenerating}
               failed={founderKit.failed}
               theme={themeState.theme}
+              input={kitInput}
+              onInputChange={setKitInput}
+              onGenerate={() => founderKit.generate(kitInput)}
             />
           </ErrorBoundary>
         )}
@@ -204,11 +233,14 @@ export default function App() {
 
       {generatingDeckFromArena.current && claude.isGenerating && <DeckForgingOverlay />}
 
-      {showPresentation && (
-        <PresentationMode slides={claude.slides} theme={themeState.theme} onClose={() => setShowPresentation(false)} />
-      )}
+      {showPresentation && <PresentationMode slides={claude.slides} onClose={() => setShowPresentation(false)} />}
       {showSessions && (
-        <SessionsPanel sessions={sessions.sessions} onLoad={handleLoadSession} onClose={() => setShowSessions(false)} />
+        <SessionsPanel
+          sessions={sessions.sessions}
+          onLoad={handleLoadSession}
+          onClearAll={sessions.clearAll}
+          onClose={() => setShowSessions(false)}
+        />
       )}
     </div>
   );

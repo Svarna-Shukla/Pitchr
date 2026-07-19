@@ -12,3 +12,10 @@ export function truncateWords(text: string, max: number): string {
 export function capBullets(bullets: string[]): string[] {
   return bullets.slice(0, MAX_BULLETS).map((b) => truncateWords(b, MAX_BULLET_WORDS));
 }
+
+// Joins the founder's original pitch with the full arena Q&A history into one flat transcript,
+// used to seed the Founder Kit input from a completed Battle Arena session
+export function buildArenaTranscript(pitchTranscript: string, rounds: { question: string; answer: string }[]): string {
+  const qa = rounds.map((r, i) => `Q${i + 1}: ${r.question}\nA${i + 1}: ${r.answer}`).join("\n\n");
+  return qa ? `${pitchTranscript}\n\n${qa}` : pitchTranscript;
+}

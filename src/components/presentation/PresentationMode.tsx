@@ -1,14 +1,14 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence } from "framer-motion";
 import type { Slide } from "../../types/slide";
-import type { Theme } from "../../hooks/useTheme";
 import PresentationSlide from "./PresentationSlide";
 import PresentationNav from "./PresentationNav";
 
-type Props = { slides: Slide[]; theme: Theme; onClose: () => void };
+type Props = { slides: Slide[]; onClose: () => void };
 
-// Fullscreen one-slide-at-a-time presentation with keyboard and on-screen navigation
-export default function PresentationMode({ slides, theme, onClose }: Props) {
+// Fullscreen one-slide-at-a-time presentation with keyboard and on-screen navigation. Always dark,
+// per the deck's forced palette, regardless of the app's own light/dark theme toggle.
+export default function PresentationMode({ slides, onClose }: Props) {
   const [index, setIndex] = useState(0);
   const [direction, setDirection] = useState(1);
 
@@ -36,13 +36,10 @@ export default function PresentationMode({ slides, theme, onClose }: Props) {
   }, [onClose, slides.length]);
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-10"
-      style={{ background: theme === "dark" ? "#0a0a0a" : "#ffffff" }}
-    >
-      <PresentationNav index={index} total={slides.length} theme={theme} onPrev={prev} onNext={next} onClose={onClose} />
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-10" style={{ background: "#0a0a0a" }}>
+      <PresentationNav index={index} total={slides.length} onPrev={prev} onNext={next} onClose={onClose} />
       <AnimatePresence mode="wait">
-        <PresentationSlide key={index} slide={slides[index]} direction={direction} theme={theme} />
+        <PresentationSlide key={index} slide={slides[index]} index={index} total={slides.length} direction={direction} />
       </AnimatePresence>
     </div>
   );

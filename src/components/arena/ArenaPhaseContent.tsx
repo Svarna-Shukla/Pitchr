@@ -62,6 +62,8 @@ export default function ArenaPhaseContent({ arena, isListening, transcript, audi
           health={arena.health}
           questionsSurvived={arena.rounds.length}
           personalityName={arena.personality?.name ?? "the investor"}
+          hasReview={!!arena.answerReview}
+          onBackToReview={arena.backToReview}
           onFightAgain={arena.fightAgain}
           onGenerateDeck={onGenerateDeck}
           isGeneratingDeck={isGeneratingDeck}

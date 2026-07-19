@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 import type { StartupCardData } from "../types/battleCard";
-import { fetchGroqJSON } from "../lib/groq";
+import { fetchGroqJSON, GROQ_MODELS } from "../lib/groq";
 import { buildCompetitorPrompt } from "../lib/battleCardPrompts";
 import { clampStat, computeHp, computeRarity } from "../lib/battleCardScoring";
 
@@ -61,7 +61,7 @@ export function useCompetitorCards() {
     setFailed(false);
     try {
       const { prompt, content } = buildCompetitorPrompt(player.name, player.oneLiner, player.industry, player.businessType);
-      const raw = await fetchGroqJSON<unknown>(prompt, content, 900);
+      const raw = await fetchGroqJSON<unknown>(prompt, content, 900, GROQ_MODELS.quality);
       const list = extractArray(raw)
         .map((c) => toCard(c, player.industry, player.businessType))
         .filter((c): c is StartupCardData => c !== null)
