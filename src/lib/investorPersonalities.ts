@@ -59,7 +59,7 @@ export const PERSONALITIES: PersonalityConfig[] = [
     maskIntensity: 1.1,
     voiceLines: {
       strong: ["That checks out.", "Sound mechanics."],
-      average: ["Vague.", "Too high-level."],
+      neutral: ["Vague.", "Too high-level."],
       weak: ["Doesn't work.", "Handwaving."],
       timeout: ["No mechanism given.", "Nothing to evaluate."],
     },
