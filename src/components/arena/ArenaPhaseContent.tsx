@@ -32,6 +32,7 @@ export default function ArenaPhaseContent({ arena, isListening, transcript, audi
           transcript={transcript}
           audioLevels={audioLevels}
           speechSupported={speechSupported}
+          failed={arena.failed}
           onToggleRecord={onToggleRecord}
           onSubmitPitch={arena.submitPitch}
         />

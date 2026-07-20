@@ -33,7 +33,10 @@ async function speakWithElevenLabs(text: string): Promise<boolean> {
         voice_settings: { stability: 0.3, similarity_boost: 0.85, style: 0.6 },
       }),
     });
-    if (!res.ok) return false;
+    if (!res.ok) {
+      console.warn(`[taiLungVoice] ElevenLabs request failed with status ${res.status}, falling back to speechSynthesis`);
+      return false;
+    }
 
     const buffer = await res.arrayBuffer();
     const blob = new Blob([buffer], { type: "audio/mpeg" });
@@ -44,7 +47,8 @@ async function speakWithElevenLabs(text: string): Promise<boolean> {
     audio.onended = () => URL.revokeObjectURL(url);
     await audio.play();
     return true;
-  } catch {
+  } catch (err) {
+    console.warn("[taiLungVoice] ElevenLabs request errored, falling back to speechSynthesis", err);
     return false;
   }
 }
@@ -54,6 +58,11 @@ async function speakWithElevenLabs(text: string): Promise<boolean> {
 // Prefers his cloned ElevenLabs voice; falls back to the browser's deep speechSynthesis voice if
 // the API keys aren't configured or the request fails.
 export async function speakAsTaiLung(text: string): Promise<void> {
-  const spoke = await speakWithElevenLabs(text);
-  if (!spoke) speakDeep(text, { pitch: TAI_LUNG_FALLBACK_PITCH, rate: TAI_LUNG_FALLBACK_RATE });
+  try {
+    const spoke = await speakWithElevenLabs(text);
+    if (!spoke) speakDeep(text, { pitch: TAI_LUNG_FALLBACK_PITCH, rate: TAI_LUNG_FALLBACK_RATE });
+  } catch (err) {
+    console.warn("[taiLungVoice] speakAsTaiLung failed unexpectedly, falling back to speechSynthesis", err);
+    speakDeep(text, { pitch: TAI_LUNG_FALLBACK_PITCH, rate: TAI_LUNG_FALLBACK_RATE });
+  }
 }

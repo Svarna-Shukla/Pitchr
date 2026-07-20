@@ -10,6 +10,7 @@ type Props = {
   transcript: string;
   audioLevels: number[];
   speechSupported: boolean;
+  failed: boolean;
   onToggleRecord: () => void;
   onSubmitPitch: (text: string) => void;
 };
@@ -17,8 +18,9 @@ type Props = {
 // Phase 1 of the arena: "Step Into the Arena" — capture the founder's pitch by voice or typed text
 // while the mask looms above, before the interrogation begins. Rendered as the bottom-slot content
 // beneath MaskStage, which handles the mask itself. The typed textarea is always visible and usable,
-// independent of whether voice input is supported on this browser.
-export default function PitchIntake({ isListening, transcript, audioLevels, speechSupported, onToggleRecord, onSubmitPitch }: Props) {
+// independent of whether voice input is supported on this browser. Also re-rendered after a failed
+// opening-question fetch bounces the arena back here, in which case `failed` surfaces why.
+export default function PitchIntake({ isListening, transcript, audioLevels, speechSupported, failed, onToggleRecord, onSubmitPitch }: Props) {
   const [typed, setTyped] = useState("");
   const pitchText = transcript.trim() || typed.trim();
   const canEnter = !isListening && pitchText.length > 0;
@@ -36,6 +38,10 @@ export default function PitchIntake({ isListening, transcript, audioLevels, spee
     >
       <h2 className="font-display text-3xl font-bold text-white">Step Into the Arena</h2>
       <p className="text-sm text-white/50">Pitch your idea. The investor is waiting to grill you on it.</p>
+
+      {failed && (
+        <p className="text-sm text-red-400">Couldn't reach the investor — check your connection and try again.</p>
+      )}
 
       <VoiceSupportBanner supported={speechSupported} />
       <HexMicButton recording={isListening} onClick={onToggleRecord} />

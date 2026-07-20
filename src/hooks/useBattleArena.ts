@@ -73,7 +73,7 @@ export function useBattleArena() {
   // fires exactly once per attack.
   useEffect(() => {
     if (phase === "attacking" && personality?.id === "tailung" && voice.enabled && pitcherator.currentQuestion) {
-      speakAsTaiLung(pitcherator.currentQuestion);
+      speakAsTaiLung(pitcherator.currentQuestion).catch(console.error);
     }
   }, [phase, personality, voice.enabled, pitcherator.currentQuestion]);
 
@@ -127,7 +127,7 @@ export function useBattleArena() {
       // generic one, so every line he speaks — attack question and judgment alike — is consistent
       const line = pickVoiceLine(personality, result.tier);
       if (personality.id === "tailung") {
-        if (voice.enabled) speakAsTaiLung(line);
+        if (voice.enabled) speakAsTaiLung(line).catch(console.error);
       } else {
         voice.speak(line);
       }
