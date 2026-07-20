@@ -11,7 +11,7 @@ export default function ProblemLayout({ slide, context, slideTheme }: LayoutProp
   const accent = resolveAccent(slide.accentColor, slideTheme);
 
   return (
-    <div className="relative flex h-full flex-1 flex-col justify-center">
+    <div className="relative flex h-full flex-1 flex-col justify-center-safe">
       {slide.stat && (
         <span
           className={`absolute right-0 top-0 select-none font-display opacity-20 ${STAT_CLASS}`}

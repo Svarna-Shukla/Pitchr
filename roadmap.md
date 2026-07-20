@@ -9,9 +9,11 @@ This is the build roadmap for Pitchr.
 - Add investor personality modes: The Shark, The Silent VC, The Pattern Matcher, The Technical
 - Add game over screen when health hits zero
 - Add scorecard with 6 score bars and letter grade after session ends
+- Add a timer to limit the time the user gets to answer the question, keeping the rapid fire theme alive
+- Voice: Husky, dark and deep
 
 ## Phase 2: Founder Kit
-- Build the live deck builder where slides generate as the user speaks
+- Build the live deck builder where slides generate as the user speaks or types out his idea
 - Add the 17 output checklist so founders pick only what they need
 - Generate formatted downloadable documents not just AI text blocks
 - Build competitor research cards with real data pulled live

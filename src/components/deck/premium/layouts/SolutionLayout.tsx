@@ -10,7 +10,7 @@ export default function SolutionLayout({ slide, context, slideTheme }: LayoutPro
   const accent = resolveAccent(slide.accentColor, slideTheme);
 
   return (
-    <div className="flex h-full flex-1 flex-col justify-center">
+    <div className="flex h-full flex-1 flex-col justify-center-safe">
       <p className={`${LABEL_CLASS} mb-3 opacity-60`} style={{ color: accent }}>
         {LAYOUT_LABELS.solution}
       </p>

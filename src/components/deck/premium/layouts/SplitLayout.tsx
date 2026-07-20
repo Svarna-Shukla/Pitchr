@@ -15,7 +15,7 @@ export default function SplitLayout({ slide, context, slideTheme }: LayoutProps)
       <h2 className={`font-display ${TITLE_CLASS}`} style={{ color: palette.title }}>
         {slide.title}
       </h2>
-      <div className="flex h-full flex-col justify-center">
+      <div className="flex h-full flex-col justify-center-safe">
         {slide.stat ? (
           <p
             className={`font-display ${STAT_CLASS}`}

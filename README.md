@@ -2,10 +2,7 @@
 
 okay so I built this thing called Pitchr and I'm pretty proud of it.
 
-basically I got tired of watching founders (including me) 
-spend hours trying to prep a pitch using like 5 different 
-apps that don't talk to each other. so I built one app that 
-does everything.
+basically I got tired of watching founders (including me) spend hours trying to prep a pitch using like 5 different apps that don't talk to each other. so I built one app that does everything.
 
 ## what it does
 

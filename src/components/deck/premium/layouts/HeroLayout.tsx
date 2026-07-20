@@ -9,7 +9,7 @@ export default function HeroLayout({ slide, context, slideTheme }: LayoutProps) 
   const accent = resolveAccent(slide.accentColor, slideTheme);
 
   return (
-    <div className="flex h-full flex-1 flex-col items-center justify-center gap-8 text-center">
+    <div className="flex h-full flex-1 flex-col items-center justify-center-safe gap-8 text-center">
       <p className="text-xs uppercase tracking-widest opacity-50" style={{ color: palette.title }}>
         {LAYOUT_LABELS.hero}
       </p>
