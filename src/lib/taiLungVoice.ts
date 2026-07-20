@@ -34,6 +34,7 @@ async function speakWithElevenLabs(text: string): Promise<boolean> {
   }
 
   try {
+    const trimmedText = text.trim() || "Rrraaargh.";
     const res = await fetch(`${ELEVENLABS_TTS_URL}/${voiceId}`, {
       method: "POST",
       headers: {
@@ -41,12 +42,14 @@ async function speakWithElevenLabs(text: string): Promise<boolean> {
         "xi-api-key": apiKey,
       },
       body: JSON.stringify({
-        text,
-        model_id: "eleven_monolingual_v1",
-        voice_settings: { stability: 0.3, similarity_boost: 0.85, style: 0.6 },
+        text: trimmedText,
+        model_id: "eleven_turbo_v2_5",
+        voice_settings: { stability: 0.5, similarity_boost: 0.75 },
       }),
     });
     if (!res.ok) {
+      const errBody = await res.json().catch(() => ({}));
+      console.error("ElevenLabs 400 Details:", errBody);
       console.warn(`[taiLungVoice] ElevenLabs request failed with status ${res.status}, falling back to speechSynthesis`);
       return false;
     }
