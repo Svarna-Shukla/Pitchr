@@ -258,7 +258,13 @@ export default function App() {
           hasSlides={claude.slides.length > 0}
           exporting={exporting}
           theme={themeState.theme}
-          onPresent={() => setShowPresentation(true)}
+          onPresent={() => {
+            // Requesting fullscreen must happen synchronously inside the click handler — deferring
+            // it into PresentationMode's mount effect loses the click's transient user activation
+            // in some browsers and the request silently fails
+            document.documentElement.requestFullscreen?.().catch(() => {});
+            setShowPresentation(true);
+          }}
           onExport={handleExport}
           onSessions={() => setShowSessions(true)}
           onClear={handleClear}

@@ -6,7 +6,7 @@ import SlideBullets from "../../../SlideBullets";
 // Problem layout: a massive left-aligned title over up to three square-marked bullets, with an
 // optional stat floating as a huge, low-opacity decorative number in the top-right corner. The
 // subtle red/pink background tint itself is applied one level up, in SlideCard's shell.
-export default function ProblemLayout({ slide, slideTheme }: LayoutProps) {
+export default function ProblemLayout({ slide, context, slideTheme }: LayoutProps) {
   const palette = SLIDE_PALETTES[slideTheme];
   const accent = resolveAccent(slide.accentColor, slideTheme);
 
@@ -15,7 +15,7 @@ export default function ProblemLayout({ slide, slideTheme }: LayoutProps) {
       {slide.stat && (
         <span
           className={`absolute right-0 top-0 select-none font-display opacity-20 ${STAT_CLASS}`}
-          style={{ color: accent, textShadow: statTextShadow(slideTheme), transform: "translateZ(40px)" }}
+          style={{ color: accent, textShadow: statTextShadow(slideTheme), transform: context === "pdf" ? undefined : "translateZ(40px)" }}
         >
           {slide.stat}
         </span>
@@ -26,7 +26,7 @@ export default function ProblemLayout({ slide, slideTheme }: LayoutProps) {
       <h2 className={`max-w-[80%] font-display ${TITLE_CLASS}`} style={{ color: palette.title }}>
         {slide.title}
       </h2>
-      <SlideBullets bullets={slide.bulletPoints} color={accent} textColor={palette.bullet} marker="square" />
+      <SlideBullets bullets={slide.bulletPoints} color={accent} textColor={palette.bullet} marker="square" animate={context !== "pdf"} />
     </div>
   );
 }

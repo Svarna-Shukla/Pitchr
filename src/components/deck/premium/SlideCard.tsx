@@ -4,16 +4,20 @@ import type { SlideTheme } from "../../../lib/premiumSlideTheme";
 import { SLIDE_PALETTES } from "../../../lib/premiumSlideTheme";
 import { SLIDE_PADDING } from "./layouts/typeScale";
 import SlideLayout from "./SlideLayout";
+import { useShrinkToFit } from "../../../hooks/useShrinkToFit";
 
 export type SlideContext = "grid" | "fullscreen" | "pdf";
 type Props = { slide: Slide; index: number; total: number; context: SlideContext; slideTheme?: SlideTheme };
 
-// The 3D-depth slide shell every deck slide shares: the active slideTheme's palette (dark or light,
-// independent of the app's own theme toggle), a hover tilt with a mouse-tracked sheen, and a
-// background/content layer split that gives the card physical depth. Body content is delegated to
-// SlideLayout per layoutType.
+// The 3D-depth slide shell every deck slide shares: the active slideTheme's palette, a hover tilt
+// with a mouse-tracked sheen, and a background/content split for physical depth. Body content is
+// delegated to SlideLayout. The "pdf" context drops every perspective/3D transform below, since
+// html2canvas-pro can't rasterize a 3D rendering context the way the browser renders it live.
 export default function SlideCard({ slide, index, total, context, slideTheme = "dark" }: Props) {
   const ref = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const isPdf = context === "pdf";
+  useShrinkToFit(contentRef, [slide]); // shrinks content that overflows the card's fixed height
   const palette = SLIDE_PALETTES[slideTheme];
   const isProblem = slide.layoutType === "problem";
   const background = isProblem
@@ -36,7 +40,7 @@ export default function SlideCard({ slide, index, total, context, slideTheme = "
   const handleMouseLeave = () => ref.current?.style.setProperty("--tilt", "0");
 
   return (
-    <div style={{ perspective: 1000 }}>
+    <div style={isPdf ? undefined : { perspective: 1000 }}>
       <div
         ref={ref}
         onMouseMove={handleMouseMove}
@@ -47,12 +51,17 @@ export default function SlideCard({ slide, index, total, context, slideTheme = "
         }`}
         style={{
           background,
-          transformStyle: "preserve-3d",
-          transform:
-            "rotateX(calc(var(--tilt, 0) * 2deg)) rotateY(calc(var(--tilt, 0) * 4deg)) scale(calc(1 + var(--tilt, 0) * 0.01))",
+          transformStyle: isPdf ? undefined : "preserve-3d",
+          transform: isPdf
+            ? undefined
+            : "rotateX(calc(var(--tilt, 0) * 2deg)) rotateY(calc(var(--tilt, 0) * 4deg)) scale(calc(1 + var(--tilt, 0) * 0.01))",
         }}
       >
-        <div className={`relative flex flex-1 flex-col ${SLIDE_PADDING}`} style={{ transform: "translateZ(20px)" }}>
+        <div
+          ref={contentRef}
+          className={`relative flex min-h-0 flex-1 flex-col ${SLIDE_PADDING}`}
+          style={{ transform: `${isPdf ? "" : "translateZ(20px) "}scale(var(--fit-scale, 1))`, transformOrigin: "top left" }}
+        >
           <SlideLayout slide={slide} context={context} slideTheme={slideTheme} />
         </div>
         <div

@@ -4,7 +4,7 @@ import { HERO_STAT_CLASS, HERO_TITLE_CLASS, LAYOUT_LABELS } from "./typeScale";
 
 // Hero layout: an Apple product-reveal moment — a tiny kicker, one massive centred title, and an
 // optional floating stat below. Zero bullets, maximum whitespace, one idea only.
-export default function HeroLayout({ slide, slideTheme }: LayoutProps) {
+export default function HeroLayout({ slide, context, slideTheme }: LayoutProps) {
   const palette = SLIDE_PALETTES[slideTheme];
   const accent = resolveAccent(slide.accentColor, slideTheme);
 
@@ -19,7 +19,7 @@ export default function HeroLayout({ slide, slideTheme }: LayoutProps) {
       {slide.stat && (
         <p
           className={`font-display ${HERO_STAT_CLASS}`}
-          style={{ color: accent, textShadow: statTextShadow(slideTheme), transform: "translateZ(40px)" }}
+          style={{ color: accent, textShadow: statTextShadow(slideTheme), transform: context === "pdf" ? undefined : "translateZ(40px)" }}
         >
           {slide.stat}
         </p>

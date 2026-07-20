@@ -1,15 +1,8 @@
-// The states the Battle Arena cycles through: pick an investor, pitch input, scanning, endless
-// attack/response/judgment loop, and finally either the voluntary scorecard or a hard game-over
-export type BattlePhase = "personality-select" | "input" | "scanning" | "attacking" | "response" | "judgment" | "scorecard" | "gameover";
+// The 6 states the Battle Arena cycles through, from first pitch input to the final scorecard
+export type BattlePhase = "input" | "scanning" | "attack_projectile" | "response" | "judgment" | "scorecard";
 
-// How an answer landed, driving both the health delta and the mask's reaction
-export type AnswerTier = "strong" | "average" | "weak" | "timeout";
-
-// One completed round of the investor grilling: the question thrown, the founder's answer, the
-// judged tier, and the investor's spoken/displayed reaction to it
+// One completed round of the investor grilling: the question thrown and the founder's answer to it
 export type ArenaRound = {
   question: string;
   answer: string;
-  tier: AnswerTier;
-  reaction: string;
 };
