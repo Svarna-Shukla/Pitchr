@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { MaskState } from "../components/arena/mask/ArenaMask";
 import type { AnswerTier, ArenaRound, BattlePhase } from "../types/arena";
+import type { VoiceAnalytics } from "../types/voice";
 import type { PersonalityConfig, PersonalityId } from "../types/investor";
 import { getPersonality, pickVoiceLine } from "../lib/investorPersonalities";
 import { useArenaHealth } from "./useArenaHealth";
@@ -98,7 +99,7 @@ export function useBattleArena() {
   // Judges the founder's answer (or a timeout), updates health/streaks, speaks the reaction, and either
   // loops back to the next attack or ends the session on 0 health
   const submitAnswer = useCallback(
-    async (text: string, isTimeout = false) => {
+    async (text: string, isTimeout = false, voiceAnalytics?: VoiceAnalytics) => {
       if (!personality) return;
       const question = pitcherator.currentQuestion;
       const nextRoundNumber = roundNumber + 1;
@@ -107,7 +108,7 @@ export function useBattleArena() {
       const result = await pitcherator.playRound(text, isTimeout, personality, rounds, nextRoundNumber);
       if (!result) return;
       const finalHealth = health.applyResult(result.tier);
-      const round: ArenaRound = { question, answer: isTimeout && !text.trim() ? "" : text, tier: result.tier, reaction: result.reaction };
+      const round: ArenaRound = { question, answer: isTimeout && !text.trim() ? "" : text, tier: result.tier, reaction: result.reaction, voiceAnalytics };
       setRounds((r) => [...r, round]);
       setLastResult({ tier: result.tier, reaction: result.reaction });
       voice.speak(pickVoiceLine(personality, result.tier));

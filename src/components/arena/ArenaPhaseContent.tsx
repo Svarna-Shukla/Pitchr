@@ -62,6 +62,7 @@ export default function ArenaPhaseContent({ arena, isListening, transcript, audi
           isPartial={arena.isPartial}
           health={arena.health}
           questionsSurvived={arena.rounds.length}
+          rounds={arena.rounds}
           personalityName={arena.personality?.name ?? "the investor"}
           hasReview={!!arena.answerReview}
           onBackToReview={arena.backToReview}

@@ -1,3 +1,5 @@
+import type { VoiceAnalytics } from "./voice";
+
 // Define all quality ratings for founder responses
 export type AnswerTier = "strong" | "neutral" | "weak" | "timeout";
 
@@ -19,6 +21,7 @@ export type ArenaRound = {
   answer: string;
   tier?: AnswerTier;
   reaction?: string;
+  voiceAnalytics?: VoiceAnalytics;
 };
 
 // Global health and round tracking state object for the arena session
