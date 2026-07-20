@@ -61,8 +61,8 @@ export default function PresentationMode({ slides, slideTheme, onClose }: Props)
       <div className="vignette-layer" />
       <PresentationNav index={index} total={slides.length} onPrev={prev} onNext={next} onClose={onClose} />
       <motion.div
-        className="relative"
-        style={{ perspective: 1600, width: "min(100vw, 100vh * 16 / 9)", height: "min(100vh, 100vw * 9 / 16)" }}
+        className="relative h-full w-full"
+        style={{ perspective: 1600 }}
         initial={{ scale: 0.3, rotateX: 10, opacity: 0 }}
         animate={{ scale: 1, rotateX: 0, opacity: 1 }}
         transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}

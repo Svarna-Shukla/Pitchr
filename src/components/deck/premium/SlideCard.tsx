@@ -5,6 +5,7 @@ import { SLIDE_PALETTES } from "../../../lib/premiumSlideTheme";
 import { SLIDE_PADDING } from "./layouts/typeScale";
 import SlideLayout from "./SlideLayout";
 import { useShrinkToFit } from "../../../hooks/useShrinkToFit";
+import { SlideViewport } from "../SlideViewport";
 
 export type SlideContext = "grid" | "fullscreen" | "pdf";
 type Props = { slide: Slide; index: number; total: number; context: SlideContext; slideTheme?: SlideTheme };
@@ -40,41 +41,43 @@ export default function SlideCard({ slide, index, total, context, slideTheme = "
   const handleMouseLeave = () => ref.current?.style.setProperty("--tilt", "0");
 
   return (
-    <div style={isPdf ? undefined : { perspective: 1000 }}>
-      <div
-        ref={ref}
-        onMouseMove={handleMouseMove}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
-        className={`relative flex aspect-video h-full w-full flex-col overflow-hidden rounded-2xl transition-transform duration-300 ease-out ${
-          slideTheme === "light" ? "border border-gray-100 shadow-2xl" : ""
-        }`}
-        style={{
-          background,
-          transformStyle: isPdf ? undefined : "preserve-3d",
-          transform: isPdf
-            ? undefined
-            : "rotateX(calc(var(--tilt, 0) * 2deg)) rotateY(calc(var(--tilt, 0) * 4deg)) scale(calc(1 + var(--tilt, 0) * 0.01))",
-        }}
-      >
+    <SlideViewport>
+      <div className="h-full w-full" style={isPdf ? undefined : { perspective: 1000 }}>
         <div
-          ref={contentRef}
-          className={`relative flex min-h-0 flex-1 flex-col ${SLIDE_PADDING}`}
-          style={{ transform: `${isPdf ? "" : "translateZ(20px) "}scale(var(--fit-scale, 1))`, transformOrigin: "top left" }}
+          ref={ref}
+          onMouseMove={handleMouseMove}
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+          className={`relative flex h-full w-full flex-col overflow-hidden rounded-2xl transition-transform duration-300 ease-out ${
+            slideTheme === "light" ? "border border-gray-100 shadow-2xl" : ""
+          }`}
+          style={{
+            background,
+            transformStyle: isPdf ? undefined : "preserve-3d",
+            transform: isPdf
+              ? undefined
+              : "rotateX(calc(var(--tilt, 0) * 2deg)) rotateY(calc(var(--tilt, 0) * 4deg)) scale(calc(1 + var(--tilt, 0) * 0.01))",
+          }}
         >
-          <SlideLayout slide={slide} context={context} slideTheme={slideTheme} />
+          <div
+            ref={contentRef}
+            className={`relative flex min-h-0 flex-1 flex-col ${SLIDE_PADDING}`}
+            style={{ transform: `${isPdf ? "" : "translateZ(20px) "}scale(var(--fit-scale, 1))`, transformOrigin: "top left" }}
+          >
+            <SlideLayout slide={slide} context={context} slideTheme={slideTheme} />
+          </div>
+          <div
+            className="pointer-events-none absolute inset-0 rounded-[inherit]"
+            style={{ background: "radial-gradient(circle at var(--mx,50%) var(--my,50%), rgba(255,255,255,0.05), transparent 60%)" }}
+          />
+          <span className="absolute bottom-4 right-6 text-xs font-semibold" style={{ color: palette.footer }}>
+            {String(index + 1).padStart(2, "0")} / {String(total).padStart(2, "0")}
+          </span>
+          <span className="absolute bottom-4 left-6 text-[10px] font-bold uppercase tracking-widest" style={{ color: palette.footer }}>
+            Pitchr
+          </span>
         </div>
-        <div
-          className="pointer-events-none absolute inset-0 rounded-[inherit]"
-          style={{ background: "radial-gradient(circle at var(--mx,50%) var(--my,50%), rgba(255,255,255,0.05), transparent 60%)" }}
-        />
-        <span className="absolute bottom-4 right-6 text-xs font-semibold" style={{ color: palette.footer }}>
-          {String(index + 1).padStart(2, "0")} / {String(total).padStart(2, "0")}
-        </span>
-        <span className="absolute bottom-4 left-6 text-[10px] font-bold uppercase tracking-widest" style={{ color: palette.footer }}>
-          Pitchr
-        </span>
       </div>
-    </div>
+    </SlideViewport>
   );
 }

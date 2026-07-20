@@ -10,7 +10,7 @@ This is the build roadmap for Pitchr.
 - Add game over screen when health hits zero
 - Add scorecard with 6 score bars and letter grade after session ends
 - Add a timer to limit the time the user gets to answer the question, keeping the rapid fire theme alive
-- Voice: Husky, dark and deep
+- Voice: Husky, dark and deep (intimidating theme maintained)
 
 ## Phase 2: Founder Kit
 - Build the live deck builder where slides generate as the user speaks or types out his idea
@@ -25,3 +25,4 @@ This is the build roadmap for Pitchr.
 - Add streak system rewarding consecutive strong answers
 - Add share card so users can share their pitch score
 - Add session history so past pitches can be reviewed
+
