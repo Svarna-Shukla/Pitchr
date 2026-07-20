@@ -1,7 +1,7 @@
 import type { AnswerTier } from "./arena";
 
-// The 4 investor personalities the founder can choose to be grilled by
-export type PersonalityId = "silent" | "shark" | "pattern" | "technical";
+// The 5 investor personalities the founder can choose to be grilled by
+export type PersonalityId = "tailung" | "silent" | "shark" | "pattern" | "technical";
 
 // Everything that changes about the interrogation based on which investor is running it: the tone
 // guidance fed into the Groq round prompt, how intensely the mask reacts, and the short canned

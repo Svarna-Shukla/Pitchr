@@ -25,4 +25,3 @@ This is the build roadmap for Pitchr.
 - Add streak system rewarding consecutive strong answers
 - Add share card so users can share their pitch score
 - Add session history so past pitches can be reviewed
-

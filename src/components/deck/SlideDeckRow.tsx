@@ -1,21 +1,21 @@
 import { useEffect, useRef, useState } from "react";
-import { Moon, Sun } from "lucide-react";
 import type { Slide } from "../../types/slide";
 import type { Theme } from "../../hooks/useTheme";
 import type { SlideTheme } from "../../lib/premiumSlideTheme";
 import DeckSlideCard from "./DeckSlideCard";
 import SlideNav from "../SlideNav";
 import SlideThumbnails from "./SlideThumbnails";
+import ThemeRemixer from "./ThemeRemixer";
 
-type Props = { slides: Slide[]; theme: Theme; slideTheme: SlideTheme; onToggleSlideTheme: () => void };
+type Props = { slides: Slide[]; theme: Theme; slideTheme: SlideTheme; onSelectSlideTheme: (theme: SlideTheme) => void };
 
 // Horizontal, snap-scrolling row of 16:9 slide cards — a real presentation deck laid out left to
-// right. Its header carries the "Slide X of N" counter, prev/next arrows, and the dark/light
-// slide-theme toggle (themed to match the app's own light/dark toggle, unlike the cards themselves,
-// which render in their own independently-toggled slideTheme). A click-to-jump thumbnail strip sits
+// right. Its header carries the "Slide X of N" counter, prev/next arrows, and the ThemeRemixer
+// switcher (independent of the app's own light/dark toggle — the cards themselves always render in
+// whichever of the 3 remixable slideTheme options is active). A click-to-jump thumbnail strip sits
 // below the row. The counter tracks whichever card is most visible, so it stays in sync with manual
 // swiping/scrolling too, not just the arrow buttons or keyboard.
-export default function SlideDeckRow({ slides, theme, slideTheme, onToggleSlideTheme }: Props) {
+export default function SlideDeckRow({ slides, theme, slideTheme, onSelectSlideTheme }: Props) {
   const isDark = theme === "dark";
   const [activeIndex, setActiveIndex] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -78,15 +78,7 @@ export default function SlideDeckRow({ slides, theme, slideTheme, onToggleSlideT
           Slide {activeIndex + 1} of {slides.length}
         </span>
         <div className="flex items-center gap-3">
-          <button
-            onClick={onToggleSlideTheme}
-            className={`flex h-8 w-8 items-center justify-center rounded-full border transition ${
-              isDark ? "border-white/10 text-white hover:border-white/30" : "border-black/10 text-black hover:border-black/30"
-            }`}
-            aria-label={`Switch slides to ${slideTheme === "dark" ? "light" : "dark"} theme`}
-          >
-            {slideTheme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-          </button>
+          <ThemeRemixer active={slideTheme} onSelect={onSelectSlideTheme} />
           <div className="flex items-center gap-2" style={{ color: chromeColor }}>
             <SlideNav
               onPrev={() => goTo(activeIndex - 1)}

@@ -13,10 +13,10 @@ export default function CompetitorQuadrant({ slide, slideTheme }: LayoutProps) {
   const palette = SLIDE_PALETTES[slideTheme];
   const accent = resolveAccent(slide.accentColor, slideTheme);
   const q = slide.quadrant;
-  const gridStroke = slideTheme === "dark" ? "#333333" : "#dddddd";
-  const axisLabelColor = slideTheme === "dark" ? "#ffffff88" : "#00000066";
-  const cornerColor = slideTheme === "dark" ? "#ffffffaa" : "#00000099";
-  const dotColor = slideTheme === "dark" ? "#777777" : "#999999";
+  const gridStroke = slideTheme === "yc" ? "#dddddd" : "#333333";
+  const axisLabelColor = slideTheme === "yc" ? "#00000066" : "#ffffff88";
+  const cornerColor = slideTheme === "yc" ? "#00000099" : "#ffffffaa";
+  const dotColor = slideTheme === "yc" ? "#999999" : "#777777";
 
   return (
     <div className="flex h-full flex-1 flex-col">

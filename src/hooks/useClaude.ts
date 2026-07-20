@@ -4,8 +4,9 @@ import { sanitizeAccentColor } from "../lib/premiumSlideTheme";
 import { sanitizeChartData } from "../lib/chartPalette";
 import { LAYOUT_TYPES, type ChartSpec, type FeatureItem, type QuadrantData, type Slide, type TimelineStep } from "../types/slide";
 
-const LAYOUT_ENUM = "hero | hero_split | hero_minimal | split | problem | solution | value_props | timeline | chart | competitor_radar";
-const QUALITATIVE_LAYOUTS = "hero, hero_split, hero_minimal, split, problem, solution, value_props, or timeline";
+const LAYOUT_ENUM =
+  "hero | hero_split | hero_minimal | split | problem | solution | value_props | timeline | narrative_quote | chart | metric_callout | competitor_radar";
+const QUALITATIVE_LAYOUTS = "hero, hero_split, hero_minimal, split, problem, solution, value_props, timeline, or narrative_quote";
 
 // Shared between the deck prompt and the improve prompt: the model is instructed here, but
 // normalizeDeck() below is the actual enforcement — every slide is re-checked against whether the
@@ -15,14 +16,14 @@ const ANTI_HALLUCINATION_RULES = `DATA ACCURACY RULES — ZERO HALLUCINATED NUMB
 1. NEVER invent or fabricate numbers, percentages, dollar amounts, or years that are not explicitly present in the source text below.
 2. If the source text contains NO explicit numbers, percentages, dollar amounts, or years:
    - "stat" MUST be null on every slide.
-   - Do NOT set layoutType to "chart" and do NOT include a "chart" object on any slide.
+   - Do NOT set layoutType to "chart" or "metric_callout", and do NOT include a "chart" object on any slide.
    - Only choose layoutType from the qualitative set: ${QUALITATIVE_LAYOUTS}. ("competitor_radar" is still allowed since it plots qualitative positioning, not a fabricated metric.)
-3. If the source text DOES contain explicit numbers: only use those exact stated values for "stat" and "chart" data — never round, extrapolate, or invent additional figures beyond what's stated.
+3. If the source text DOES contain explicit numbers: only use those exact stated values for "stat" and "chart" data — never round, extrapolate, or invent additional figures beyond what's stated. "metric_callout" (one giant number, no chart) is only for a slide whose entire point is a single stated stat.
 
 FLUID LAYOUT VARIETY:
 1. The opening slide should use layoutType "hero", "hero_split", or "hero_minimal" for a strong opening beat.
 2. Vary layoutType across the deck — do not repeat the same layoutType on two consecutive slides.
-3. Use "value_props" (with a "featureGrid" of 2-4 short { "title", "description" } items) for slides about product features or offerings that don't hinge on a number. Use "timeline" (with "timelineSteps" of { "phase", "title", "detail" }) for roadmap or traction narratives that don't hinge on a number.`;
+3. Use "value_props" (with a "featureGrid" of 2-4 short { "title", "description" } items) for slides about product features or offerings that don't hinge on a number. Use "timeline" (with "timelineSteps" of { "phase", "title", "detail" }) for roadmap or traction narratives that don't hinge on a number. Use "narrative_quote" for a single testimonial or mission-statement beat — the "title" IS the quote, and the first "bulletPoints" entry (if any) is its attribution.`;
 
 // Elite presentation architect system prompt enforcing an Apple-Keynote-style minimalist deck
 const DECK_PROMPT = `You are an elite Presentation Architect inspired by Apple Keynote and high-end tech-product launch slides. Transform raw founder transcripts into a stunning minimalist presentation JSON array.
@@ -142,7 +143,8 @@ function normalizeSlide(raw: Partial<Slide> | null | undefined, hasNumbers: bool
   const timelineSteps = normalizeTimelineSteps(raw.timelineSteps);
   if (layoutType === "chart" && !chart) layoutType = "split";
   if (layoutType === "competitor_radar" && !quadrant) layoutType = "split";
-  if (!hasNumbers && layoutType === "chart") layoutType = "split";
+  if (layoutType === "metric_callout" && typeof raw.stat !== "string") layoutType = "split";
+  if (!hasNumbers && (layoutType === "chart" || layoutType === "metric_callout")) layoutType = "split";
 
   return {
     title: raw.title,

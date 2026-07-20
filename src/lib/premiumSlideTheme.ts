@@ -1,10 +1,12 @@
 // The forced palette for every deck slide, regardless of the app's own light/dark theme toggle.
-// Slides get their own independent dark/light toggle instead — see SlideTheme below.
-export const PREMIUM_BG = "#0a0a0a";
+// Slides pick from the 3 remixable themes below instead — see SlideTheme and ThemeRemixer.tsx.
+export const PREMIUM_BG = "#080808";
 export const PREMIUM_SURFACE = "#111111";
 export const PREMIUM_ACCENT_DEFAULT = "#ff7700";
 
-export type SlideTheme = "dark" | "light";
+// "neon" (Pitchr's own brand) and "yc" (YC Minimal) are the deck's original two looks, renamed and
+// joined by "cyberpunk" as the 3rd remixable theme
+export type SlideTheme = "neon" | "yc" | "cyberpunk";
 
 export type SlidePalette = {
   background: string;
@@ -15,9 +17,13 @@ export type SlidePalette = {
   footer: string;
 };
 
-// The two colour sets a slide can render in, toggled independently of the app's own theme
+// The 3 colour sets a slide can render in, toggled independently of the app's own theme via
+// ThemeRemixer. "stat" always mirrors "accent" in every theme here (kept as its own field since a
+// few call sites reference it independently), and cyberpunk's secondary magenta lives in
+// chartPalette.ts's resolveChartColor rather than here, since charts are the one place a second
+// accent is actually rendered.
 export const SLIDE_PALETTES: Record<SlideTheme, SlidePalette> = {
-  dark: {
+  neon: {
     background: PREMIUM_BG,
     title: "#ffffff",
     bullet: "rgba(255,255,255,0.8)",
@@ -25,13 +31,21 @@ export const SLIDE_PALETTES: Record<SlideTheme, SlidePalette> = {
     stat: PREMIUM_ACCENT_DEFAULT,
     footer: "rgba(255,255,255,0.22)",
   },
-  light: {
+  yc: {
     background: "#ffffff",
-    title: "#0a0a0a",
+    title: "#111827",
     bullet: "#333333",
-    accent: "#ff5500",
-    stat: "#ff5500",
-    footer: "rgba(10,10,10,0.28)",
+    accent: "#ff6600",
+    stat: "#ff6600",
+    footer: "rgba(17,24,39,0.28)",
+  },
+  cyberpunk: {
+    background: "#0d0221",
+    title: "#ffffff",
+    bullet: "rgba(255,255,255,0.82)",
+    accent: "#00f0ff",
+    stat: "#00f0ff",
+    footer: "rgba(0,240,255,0.24)",
   },
 };
 
@@ -59,12 +73,14 @@ export function sanitizeAccentColor(hex: string | undefined | null): string {
 
 // Resolves a slide's effective accent for the active slide theme: a genuinely custom (non-default)
 // model-supplied accent is always respected as-is, but a slide left on the generic brand default
-// picks up the current theme's own default accent (#ff7700 dark / #ff5500 light)
+// picks up the current theme's own default accent (orange/orange/cyan depending on theme)
 export function resolveAccent(accentColor: string, theme: SlideTheme): string {
   return accentColor === PREMIUM_ACCENT_DEFAULT ? SLIDE_PALETTES[theme].accent : accentColor;
 }
 
-// The floating drop-shadow under a slide's stat number, tuned per theme so it stays subtle on both
+// The floating drop-shadow under a slide's stat number, tuned per theme so it stays subtle on neon
+// and yc but reads as a glow on cyberpunk's cyan
 export function statTextShadow(theme: SlideTheme): string {
-  return theme === "dark" ? "0 8px 32px rgba(255,119,0,0.4)" : "0 8px 32px rgba(255,85,0,0.2)";
+  if (theme === "cyberpunk") return "0 8px 32px rgba(0,240,255,0.45)";
+  return theme === "neon" ? "0 8px 32px rgba(255,119,0,0.4)" : "0 8px 32px rgba(255,102,0,0.2)";
 }

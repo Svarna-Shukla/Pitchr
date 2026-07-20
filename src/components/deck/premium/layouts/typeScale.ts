@@ -7,7 +7,10 @@ import type { LayoutType } from "../../../../types/slide";
 // size everywhere; adding a breakpoint would only reintroduce the preview/present drift this fixes.
 export const SLIDE_PADDING = "p-16";
 export const TITLE_CLASS = "text-6xl font-black leading-tight tracking-tight";
-export const BULLET_CLASS = "text-2xl font-medium leading-relaxed";
+// Bumped from text-2xl to text-4xl (36px @ the 1920x1080 reference canvas) with bold weight for
+// scannability at presentation distance — this is the single constant SlideBullets and every
+// layout's bullet rendering shares, so the increase is deck-wide from this one line.
+export const BULLET_CLASS = "text-4xl font-bold leading-relaxed";
 export const STAT_CLASS = "text-9xl font-black";
 export const LABEL_CLASS = "text-sm font-semibold uppercase tracking-widest";
 export const HERO_TITLE_CLASS = "text-7xl font-black leading-tight tracking-tight";
@@ -23,6 +26,8 @@ export const LAYOUT_LABELS: Record<LayoutType, string> = {
   split: "At A Glance",
   value_props: "What We Offer",
   timeline: "The Roadmap",
+  narrative_quote: "In Their Words",
   chart: "By The Numbers",
+  metric_callout: "The Headline Number",
   competitor_radar: "Competitive Landscape",
 };

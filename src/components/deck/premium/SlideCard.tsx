@@ -14,7 +14,7 @@ type Props = { slide: Slide; index: number; total: number; context: SlideContext
 // with a mouse-tracked sheen, and a background/content split for physical depth. Body content is
 // delegated to SlideLayout. The "pdf" context drops every perspective/3D transform below, since
 // html2canvas-pro can't rasterize a 3D rendering context the way the browser renders it live.
-export default function SlideCard({ slide, index, total, context, slideTheme = "dark" }: Props) {
+export default function SlideCard({ slide, index, total, context, slideTheme = "neon" }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const isPdf = context === "pdf";
@@ -22,9 +22,11 @@ export default function SlideCard({ slide, index, total, context, slideTheme = "
   const palette = SLIDE_PALETTES[slideTheme];
   const isProblem = slide.layoutType === "problem";
   const background = isProblem
-    ? slideTheme === "dark"
-      ? "radial-gradient(ellipse at 50% 0%, #1a0000, #0a0a0a)"
-      : "#fff8f8"
+    ? slideTheme === "yc"
+      ? "#fff8f8"
+      : slideTheme === "cyberpunk"
+        ? "radial-gradient(ellipse at 50% 0%, #2a0030, #0d0221)"
+        : "radial-gradient(ellipse at 50% 0%, #1a0000, #080808)"
     : palette.background;
 
   // Moves the sheen highlight to the pointer via a CSS custom property, avoiding a re-render per pixel
@@ -49,7 +51,7 @@ export default function SlideCard({ slide, index, total, context, slideTheme = "
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
           className={`relative flex h-full w-full flex-col overflow-hidden rounded-2xl transition-transform duration-300 ease-out ${
-            slideTheme === "light" ? "border border-gray-100 shadow-2xl" : ""
+            slideTheme === "yc" ? "border border-gray-100 shadow-2xl" : ""
           }`}
           style={{
             background,

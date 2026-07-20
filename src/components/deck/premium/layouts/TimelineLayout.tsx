@@ -26,10 +26,10 @@ export default function TimelineLayout({ slide, context, slideTheme }: LayoutPro
               <span className={LABEL_CLASS} style={{ color: accent }}>
                 {s.phase}
               </span>
-              <h3 className="text-2xl font-bold" style={{ color: palette.title }}>
+              <h3 className="text-3xl font-bold" style={{ color: palette.title }}>
                 {s.title}
               </h3>
-              <p className="text-lg leading-relaxed" style={{ color: palette.bullet }}>
+              <p className="text-2xl font-medium leading-relaxed" style={{ color: palette.bullet }}>
                 {s.detail}
               </p>
             </div>

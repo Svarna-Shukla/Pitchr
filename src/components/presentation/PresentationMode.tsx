@@ -5,12 +5,12 @@ import type { SlideTheme } from "../../lib/premiumSlideTheme";
 import PresentationSlide from "./PresentationSlide";
 import PresentationNav from "./PresentationNav";
 
-type Props = { slides: Slide[]; slideTheme: SlideTheme; onClose: () => void };
+type Props = { slides: Slide[]; slideTheme: SlideTheme; onSelectSlideTheme: (theme: SlideTheme) => void; onClose: () => void };
 
 // Fullscreen one-slide-at-a-time presentation: a cinematic 3D zoom on entry, then a cube-style
-// rotation between slides. Always renders at the current slideTheme (dark or light), independent
-// of the app's own light/dark theme toggle.
-export default function PresentationMode({ slides, slideTheme, onClose }: Props) {
+// rotation between slides. Always renders at the current slideTheme, independent of the app's own
+// light/dark theme toggle, and remixable in-place via PresentationNav's ThemeRemixer bar.
+export default function PresentationMode({ slides, slideTheme, onSelectSlideTheme, onClose }: Props) {
   const [index, setIndex] = useState(0);
   const [direction, setDirection] = useState(1);
 
@@ -59,7 +59,15 @@ export default function PresentationMode({ slides, slideTheme, onClose }: Props)
     // clickable over other panels), since Presentation Mode is meant to hide all app chrome outright
     <div className="fixed inset-0 z-[100] flex items-center justify-center" style={{ background: "#000000" }}>
       <div className="vignette-layer" />
-      <PresentationNav index={index} total={slides.length} onPrev={prev} onNext={next} onClose={onClose} />
+      <PresentationNav
+        index={index}
+        total={slides.length}
+        slideTheme={slideTheme}
+        onSelectSlideTheme={onSelectSlideTheme}
+        onPrev={prev}
+        onNext={next}
+        onClose={onClose}
+      />
       <motion.div
         className="relative h-full w-full"
         style={{ perspective: 1600 }}

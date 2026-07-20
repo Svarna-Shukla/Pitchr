@@ -1,9 +1,25 @@
 import type { AnswerTier } from "../types/arena";
 import type { PersonalityConfig, PersonalityId } from "../types/investor";
 
-// The 4 investor personalities selectable before entering the arena — each reshapes the Groq
-// prompt's tone, how hard the mask reacts, and which short lines get spoken aloud per answer tier
+// The 5 investor personalities selectable before entering the arena — each reshapes the Groq
+// prompt's tone, how hard the mask reacts, and which short lines get spoken aloud per answer tier.
+// Tai Lung is first in this array, making him the default/first card shown on the select screen.
 export const PERSONALITIES: PersonalityConfig[] = [
+  {
+    id: "tailung",
+    name: "Tai Lung",
+    tagline: "Arrogant. Dominant. Loves the sound of your defeat.",
+    description: "A martial-arts-obsessed villain VC who treats every pitch like a duel he's already won.",
+    promptStyle:
+      "Write as Tai Lung: a dominant, hyper-confident, condescending villain investor who talks in martial-arts and battle metaphors. Taunt the founder — e.g. 'Our battle will be legendary!' or 'Is that all you've got?' — and end the question with a contemptuous jab at their pitch, like 'Your CAC is weak.' Never break the villain-VC persona.",
+    maskIntensity: 1.3,
+    voiceLines: {
+      strong: ["Impressive. You may be worthy after all.", "Finally, a real opponent."],
+      neutral: ["Is that all you've got?", "Keep talking. I'm not impressed yet."],
+      weak: ["Your CAC is weak. Your pitch is weaker.", "Pathetic. This battle is already over."],
+      timeout: ["Silence is not an answer.", "You hesitate. I win."],
+    },
+  },
   {
     id: "silent",
     name: "The Silent VC",
@@ -66,9 +82,9 @@ export const PERSONALITIES: PersonalityConfig[] = [
   },
 ];
 
-// Looks up a personality config by id, falling back to The Shark if somehow unset
+// Looks up a personality config by id, falling back to Tai Lung (the default) if somehow unset
 export function getPersonality(id: PersonalityId | null): PersonalityConfig {
-  return PERSONALITIES.find((p) => p.id === id) ?? PERSONALITIES[1];
+  return PERSONALITIES.find((p) => p.id === id) ?? PERSONALITIES[0];
 }
 
 // Picks a random short canned line for the given personality + answer tier, used for spoken feedback

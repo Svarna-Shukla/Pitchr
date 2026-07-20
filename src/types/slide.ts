@@ -1,7 +1,8 @@
 // The visual treatments a slide can use — chosen by the deck generator per slide's content.
-// hero/hero_split/hero_minimal and value_props/timeline are qualitative — no chart or stat
-// required — while chart and competitor_radar carry structured data (chart is gated on the
-// transcript actually containing explicit numbers; see useClaude.ts's anti-hallucination guard).
+// hero/hero_split/hero_minimal, value_props/timeline, and narrative_quote are qualitative — no
+// chart or stat required — while chart, metric_callout, and competitor_radar carry structured
+// numeric data (chart and metric_callout are gated on the transcript actually containing explicit
+// numbers; see useClaude.ts's anti-hallucination guard).
 export const LAYOUT_TYPES = [
   "hero",
   "hero_split",
@@ -11,7 +12,9 @@ export const LAYOUT_TYPES = [
   "solution",
   "value_props",
   "timeline",
+  "narrative_quote",
   "chart",
+  "metric_callout",
   "competitor_radar",
 ] as const;
 export type LayoutType = (typeof LAYOUT_TYPES)[number];

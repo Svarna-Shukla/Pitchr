@@ -4,6 +4,7 @@ import type { AnswerTier, ArenaRound, BattlePhase } from "../types/arena";
 import type { VoiceAnalytics } from "../types/voice";
 import type { PersonalityConfig, PersonalityId } from "../types/investor";
 import { getPersonality, pickVoiceLine } from "../lib/investorPersonalities";
+import { speakAsTaiLung } from "../lib/taiLungVoice";
 import { useArenaHealth } from "./useArenaHealth";
 import { usePitcherator } from "./usePitcherator";
 import { useSpeechSynthesis } from "./useSpeechSynthesis";
@@ -65,6 +66,17 @@ export function useBattleArena() {
     if (pitcherator.stage === "scorecard" && phase !== "scorecard") setPhase("scorecard");
   }, [pitcherator.stage, phase]);
 
+  // Tai Lung specifically speaks his attack question aloud in his own deep villain voice the moment
+  // it's ready to launch (Phase 4) — every other personality's question stays visual-only, typed out
+  // by QuestionPanel, matching existing behavior. currentQuestion is already updated to the new
+  // question by the time phase flips to "attacking" (see usePitcherator's start/playRound), so this
+  // fires exactly once per attack.
+  useEffect(() => {
+    if (phase === "attacking" && personality?.id === "tailung" && voice.enabled && pitcherator.currentQuestion) {
+      speakAsTaiLung(pitcherator.currentQuestion);
+    }
+  }, [phase, personality, voice.enabled, pitcherator.currentQuestion]);
+
   // If the opening question fails to generate, drop back to intake so the founder can retry
   useEffect(() => {
     if (pitcherator.failed && phase === "scanning") setPhase("input");
@@ -111,7 +123,14 @@ export function useBattleArena() {
       const round: ArenaRound = { question, answer: isTimeout && !text.trim() ? "" : text, tier: result.tier, reaction: result.reaction, voiceAnalytics };
       setRounds((r) => [...r, round]);
       setLastResult({ tier: result.tier, reaction: result.reaction });
-      voice.speak(pickVoiceLine(personality, result.tier));
+      // Tai Lung's reaction lines go through his own dedicated deeper voice instead of the shared
+      // generic one, so every line he speaks — attack question and judgment alike — is consistent
+      const line = pickVoiceLine(personality, result.tier);
+      if (personality.id === "tailung") {
+        if (voice.enabled) speakAsTaiLung(line);
+      } else {
+        voice.speak(line);
+      }
       if (finalHealth <= 0) {
         setPhase("gameover");
       } else {

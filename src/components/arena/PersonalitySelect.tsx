@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Cpu, EyeOff, Flame, GitCompare } from "lucide-react";
+import { Cpu, EyeOff, Flame, GitCompare, Swords } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { PersonalityId } from "../../types/investor";
 import { PERSONALITIES } from "../../lib/investorPersonalities";
@@ -7,7 +7,7 @@ import PersonalityCard from "./PersonalityCard";
 
 type Props = { onSelect: (id: PersonalityId) => void };
 
-const ICONS: Record<PersonalityId, LucideIcon> = { silent: EyeOff, shark: Flame, pattern: GitCompare, technical: Cpu };
+const ICONS: Record<PersonalityId, LucideIcon> = { tailung: Swords, silent: EyeOff, shark: Flame, pattern: GitCompare, technical: Cpu };
 
 // Phase 0 of the arena: before pitching, the founder picks which investor personality will grill
 // them — each reshapes question tone, mask intensity, and voice feedback for the whole session

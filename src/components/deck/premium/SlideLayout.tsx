@@ -9,7 +9,9 @@ import SolutionLayout from "./layouts/SolutionLayout";
 import SplitLayout from "./layouts/SplitLayout";
 import ValuePropsLayout from "./layouts/ValuePropsLayout";
 import TimelineLayout from "./layouts/TimelineLayout";
+import NarrativeQuoteLayout from "./layouts/NarrativeQuoteLayout";
 import ChartLayout from "./layouts/ChartLayout";
+import MetricCalloutLayout from "./layouts/MetricCalloutLayout";
 import CompetitorQuadrant from "./layouts/CompetitorQuadrant";
 
 export type LayoutProps = { slide: Slide; context: SlideContext; slideTheme: SlideTheme };
@@ -34,12 +36,19 @@ export default function SlideLayout({ slide, context, slideTheme }: LayoutProps)
       return <ValuePropsLayout slide={slide} context={context} slideTheme={slideTheme} />;
     case "timeline":
       return <TimelineLayout slide={slide} context={context} slideTheme={slideTheme} />;
+    case "narrative_quote":
+      return <NarrativeQuoteLayout slide={slide} context={context} slideTheme={slideTheme} />;
     case "chart":
       // Safety fallback: a chart layout with no usable chart data degrades to the always-safe
       // split layout instead of rendering an empty chart area (defense-in-depth alongside the
       // normalization guard in useClaude.ts, which should already prevent this from occurring).
       if (!slide.chart || !slide.chart.data.length) return <SplitLayout slide={slide} context={context} slideTheme={slideTheme} />;
       return <ChartLayout slide={slide} context={context} slideTheme={slideTheme} />;
+    case "metric_callout":
+      // Same defense-in-depth as "chart" above: no stat to show degrades to split rather than
+      // rendering an empty giant-number slide.
+      if (!slide.stat) return <SplitLayout slide={slide} context={context} slideTheme={slideTheme} />;
+      return <MetricCalloutLayout slide={slide} context={context} slideTheme={slideTheme} />;
     case "competitor_radar":
       return <CompetitorQuadrant slide={slide} context={context} slideTheme={slideTheme} />;
   }

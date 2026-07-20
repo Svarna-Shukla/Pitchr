@@ -41,8 +41,9 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<NavTab>("arena");
   const [arenaEntered, setArenaEntered] = useState(false);
   const [showPresentation, setShowPresentation] = useState(false);
-  // Slides' own dark/light theme — independent of the app's own theme toggle (themeState above)
-  const [slideTheme, setSlideTheme] = useState<SlideTheme>("dark");
+  // Slides' own remixable theme (Pitchr Neon / YC Minimal / Cyberpunk) — independent of the app's
+  // own theme toggle (themeState above)
+  const [slideTheme, setSlideTheme] = useState<SlideTheme>("neon");
   const [showSessions, setShowSessions] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [kitInput, setKitInput] = useState("");
@@ -222,7 +223,7 @@ export default function App() {
             slides={claude.slides}
             theme={themeState.theme}
             slideTheme={slideTheme}
-            onToggleSlideTheme={() => setSlideTheme((t) => (t === "dark" ? "light" : "dark"))}
+            onSelectSlideTheme={setSlideTheme}
             competitors={competitorRadar.competitors}
             isCompetitorsGenerating={competitorRadar.isGenerating}
             competitorsFailed={competitorRadar.failed}
@@ -273,7 +274,14 @@ export default function App() {
 
       {generatingDeckFromArena.current && claude.isGenerating && <DeckForgingOverlay />}
 
-      {showPresentation && <PresentationMode slides={claude.slides} slideTheme={slideTheme} onClose={() => setShowPresentation(false)} />}
+      {showPresentation && (
+        <PresentationMode
+          slides={claude.slides}
+          slideTheme={slideTheme}
+          onSelectSlideTheme={setSlideTheme}
+          onClose={() => setShowPresentation(false)}
+        />
+      )}
       {showSessions && (
         <SessionsPanel
           sessions={sessions.sessions}

@@ -45,8 +45,11 @@ async function captureSlide(slide: Slide, index: number, total: number, slideThe
     // html2canvas occasionally never settles on a given element (an upstream quirk, not tied to
     // any particular slide layout) — race it against a timeout so one bad slide can't hang the
     // whole export forever
+    // scale: 2 forces a high-DPI backing canvas regardless of the exporting machine's own
+    // devicePixelRatio, so the PDF matches what a Retina/high-DPI screen shows rather than
+    // whatever the export happens to run on
     const canvas = await Promise.race([
-      html2canvas(container, { backgroundColor: SLIDE_PALETTES[slideTheme].background }),
+      html2canvas(container, { backgroundColor: SLIDE_PALETTES[slideTheme].background, scale: 2 }),
       new Promise<never>((_, reject) => setTimeout(() => reject(new Error(`Slide ${index + 1} capture timed out`)), CAPTURE_TIMEOUT_MS)),
     ]);
     root.unmount();
@@ -59,7 +62,7 @@ async function captureSlide(slide: Slide, index: number, total: number, slideThe
 // Renders every slide as its own 16:9 page by rasterizing the live SlideCard component (charts,
 // custom typography, and the current slide theme all capture faithfully this way), one slide at a
 // time so captures never race each other, and downloads the deck as a PDF
-export async function exportSlidesToPdf(slides: Slide[], slideTheme: SlideTheme = "dark"): Promise<void> {
+export async function exportSlidesToPdf(slides: Slide[], slideTheme: SlideTheme = "neon"): Promise<void> {
   await document.fonts.ready;
   const doc = new jsPDF({ orientation: "landscape", unit: "pt", format: [PAGE_W, PAGE_H] });
   for (let i = 0; i < slides.length; i++) {

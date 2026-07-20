@@ -24,10 +24,10 @@ export default function ValuePropsLayout({ slide, context, slideTheme }: LayoutP
           {features.map((f, i) => (
             <div key={i} className="flex flex-col gap-2">
               <span className="h-1.5 w-8 rounded-full" style={{ background: accent }} />
-              <h3 className="text-2xl font-bold" style={{ color: palette.title }}>
+              <h3 className="text-3xl font-bold" style={{ color: palette.title }}>
                 {f.title}
               </h3>
-              <p className="text-lg leading-relaxed" style={{ color: palette.bullet }}>
+              <p className="text-2xl font-medium leading-relaxed" style={{ color: palette.bullet }}>
                 {f.description}
               </p>
             </div>
