@@ -13,12 +13,25 @@ const ELEVENLABS_TTS_URL = "https://api.elevenlabs.io/v1/text-to-speech";
 // one instead of overlapping it, mirroring speakDeep's own cancel-before-speak behavior
 let currentAudio: HTMLAudioElement | null = null;
 
+// Mirrors fetchGroqJSON's warnedMissingKey pattern in ../lib/groq.ts — warns once per session
+// instead of spamming the console on every line Tai Lung speaks
+let warnedMissingKeys = false;
+
 // Requests a Tai Lung line from ElevenLabs and plays it immediately as a Blob URL. Returns false
 // (never throws) on any missing config or request failure so the caller can fall back cleanly.
 async function speakWithElevenLabs(text: string): Promise<boolean> {
   const apiKey = import.meta.env.VITE_ELEVENLABS_API_KEY;
   const voiceId = import.meta.env.VITE_ELEVENLABS_VOICE_ID;
-  if (!apiKey || !voiceId) return false;
+  if (!apiKey || !voiceId) {
+    if (!warnedMissingKeys) {
+      console.warn(
+        "[taiLungVoice] VITE_ELEVENLABS_API_KEY/VITE_ELEVENLABS_VOICE_ID not set — falling back to speechSynthesis. " +
+          "Set these in your Vercel project's Environment Variables (not just .env) for the cloned voice in production."
+      );
+      warnedMissingKeys = true;
+    }
+    return false;
+  }
 
   try {
     const res = await fetch(`${ELEVENLABS_TTS_URL}/${voiceId}`, {

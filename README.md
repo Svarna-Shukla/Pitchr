@@ -35,6 +35,10 @@ cp .env.example .env
 add your VITE_GROQ_API_KEY to .env
 npm run dev
 
+Tai Lung's ElevenLabs voice is optional — add VITE_ELEVENLABS_API_KEY and VITE_ELEVENLABS_VOICE_ID to .env too if you want the cloned voice instead of the browser's built-in speechSynthesis fallback.
+
+if you're deploying to Vercel, .env is gitignored and never reaches the build — add all three vars (VITE_GROQ_API_KEY, VITE_ELEVENLABS_API_KEY, VITE_ELEVENLABS_VOICE_ID) in the Vercel project's Environment Variables settings too, then redeploy.
+
 ## about me
 
 I'm Svarna, I'm in high school in Texas and I built this for Hack Club Horizons 2026. this is probably the most complex thing I've shipped so far and I learned a lot building it.
