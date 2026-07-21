@@ -19,7 +19,12 @@ export function SlideViewport({ children, className = "" }: Props) {
     if (!outer) return;
 
     const measure = () => {
-      const { width, height } = outer.getBoundingClientRect();
+      // offsetWidth/offsetHeight (unlike getBoundingClientRect) reflect the untransformed layout
+      // box, so this stays correct even while an ancestor (e.g. PresentationSlide's or
+      // DeckSlideCard's entrance animation) is mid-transform — getBoundingClientRect briefly
+      // reports a near-zero rect during those animations, which used to get cached as the scale
+      // forever since ResizeObserver never fires again for a transform-only change upstream.
+      const { offsetWidth: width, offsetHeight: height } = outer;
       if (width > 0 && height > 0) setScale(Math.min(width / BASE_WIDTH, height / BASE_HEIGHT));
     };
 
