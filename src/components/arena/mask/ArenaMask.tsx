@@ -34,7 +34,7 @@ export default function ArenaMask({ state, intensity = 1, isSpeaking = false }: 
       {eyePositions.map((p, i) => (
         <mesh key={i} position={p} scale={[1, 0.68, 1]}>
           <circleGeometry args={[0.17, 16]} />
-          <meshStandardMaterial ref={(m) => { eyeMats.current[i] = m; }} color="#ff9a4d" emissive="#ffb347" emissiveIntensity={1.6} toneMapped={false} />
+          <meshStandardMaterial ref={(m) => { eyeMats.current[i] = m; }} color="#FF4500" emissive="#FF4500" emissiveIntensity={1.6} toneMapped={false} />
         </mesh>
       ))}
       <mesh ref={mouth} position={[chin.x, chin.y + 0.12, chin.z + 0.02]}>

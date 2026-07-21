@@ -32,7 +32,7 @@ export default function BattleArena(props: Props) {
   const flash = arena.phase === "judgment" && arena.lastResult ? (arena.lastResult.tier === "strong" ? "green" : "red") : null;
 
   if (arena.phase === "gameover") {
-    return <GameOverOverlay onTryAgain={arena.fightAgain} onViewPartial={arena.viewPartialResults} />;
+    return <GameOverOverlay investorId={arena.personality?.id ?? "tailung"} onTryAgain={arena.fightAgain} onViewPartial={arena.viewPartialResults} />;
   }
 
   return (
@@ -43,10 +43,11 @@ export default function BattleArena(props: Props) {
       {isLive && <EndPitchButton onClick={arena.endPitch} />}
       {isLive && <SpeakerToggle enabled={arena.voiceEnabled} onToggle={arena.toggleVoice} />}
 
-      {arena.phase !== "personality-select" && (
+      {arena.phase !== "personality-select" && arena.personality && (
         <MaskStage
           state={arena.maskState}
           attackTrigger={arena.attackTrigger}
+          investorId={arena.personality.id}
           flash={flash}
           flashKey={arena.rounds.length}
           compact={arena.phase === "scorecard"}

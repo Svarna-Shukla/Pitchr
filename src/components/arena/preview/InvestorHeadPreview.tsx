@@ -1,10 +1,11 @@
 import { Suspense, lazy } from "react";
-import type { MeshConfig } from "../../../types/investor";
+import type { PersonalityId } from "../../../types/investor";
+import { getInvestorProfile, getInvestorColor } from "../../../lib/investorProfiles";
 import { isWebGLAvailable } from "../../../lib/webgl";
 
 const InvestorHeadScene = lazy(() => import("./InvestorHeadScene"));
 
-type Props = { meshConfig: MeshConfig };
+type Props = { investorId: PersonalityId };
 
 // Plain CSS fallback shown in place of the Canvas when the browser can't create a WebGL context
 function NoWebGLFallback({ color }: { color: string }) {
@@ -15,15 +16,16 @@ function NoWebGLFallback({ color }: { color: string }) {
   );
 }
 
-// Sizeable, self-contained 3D preview: one investor's rotating wireframe head, gated behind a WebGL
-// availability check like the hero/arena masks. Used inside PersonalityCard (idle thumbnail) and
-// InvestorPreviewModal (larger live preview) — both just pass a different container size around it.
-export default function InvestorHeadPreview({ meshConfig }: Props) {
-  if (!isWebGLAvailable()) return <NoWebGLFallback color={meshConfig.color} />;
+// Sizeable, self-contained 3D preview: one investor's rotating head (their dedicated ArenaMask for Tai
+// Lung, or their wireframe InvestorHeadMesh for everyone else), gated behind a WebGL availability check
+// like the hero/arena masks. Used inside InvestorPreviewModal.
+export default function InvestorHeadPreview({ investorId }: Props) {
+  const fallbackColor = getInvestorColor(getInvestorProfile(investorId));
+  if (!isWebGLAvailable()) return <NoWebGLFallback color={fallbackColor} />;
 
   return (
-    <Suspense fallback={<NoWebGLFallback color={meshConfig.color} />}>
-      <InvestorHeadScene meshConfig={meshConfig} />
+    <Suspense fallback={<NoWebGLFallback color={fallbackColor} />}>
+      <InvestorHeadScene investorId={investorId} />
     </Suspense>
   );
 }

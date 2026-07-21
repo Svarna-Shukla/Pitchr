@@ -43,7 +43,7 @@ export function useMaskAnimation(state: MaskState, intensity: number, isSpeaking
       mouth.current.rotation.z = THREE.MathUtils.lerp(mouth.current.rotation.z, targetTiltZ, lerp);
     }
 
-    const eyeColor = new THREE.Color("#ffb347").lerp(new THREE.Color("#ffffff"), t.hot);
+    const eyeColor = new THREE.Color("#FF4500").lerp(new THREE.Color("#ffffff"), t.hot);
     for (const mat of eyeMats.current) {
       if (!mat) continue;
       mat.emissiveIntensity = THREE.MathUtils.lerp(mat.emissiveIntensity, t.eye, lerp);

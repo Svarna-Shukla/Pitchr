@@ -1,16 +1,17 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import type { PersonalityId } from "../../types/investor";
 import MaskStage from "./MaskStage";
 import Button from "../Button";
 
-type Props = { onTryAgain: () => void; onViewPartial: () => void };
+type Props = { investorId: PersonalityId; onTryAgain: () => void; onViewPartial: () => void };
 
 const FLASH_MS = 300;
 const SURGE_MS = 1000;
 
 // Game-over sequence fired the instant health hits 0: a red flash, the mask surging forward to fill
 // the screen for a beat, then "PITCH FAILED." in massive type over the mask as it settles and stares
-export default function GameOverOverlay({ onTryAgain, onViewPartial }: Props) {
+export default function GameOverOverlay({ investorId, onTryAgain, onViewPartial }: Props) {
   const [stage, setStage] = useState<"flash" | "surge" | "reveal">("flash");
 
   // Advances flash -> surge -> reveal on fixed timers, once, on mount
@@ -40,6 +41,7 @@ export default function GameOverOverlay({ onTryAgain, onViewPartial }: Props) {
       <MaskStage
         state={stage === "surge" ? "gameover" : "idle"}
         attackTrigger={0}
+        investorId={investorId}
         flash={null}
         flashKey={0}
         fill={stage === "surge"}

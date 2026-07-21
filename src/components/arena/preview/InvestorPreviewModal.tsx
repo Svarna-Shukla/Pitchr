@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 import type { PersonalityConfig } from "../../../types/investor";
+import { getInvestorColor } from "../../../lib/investorProfiles";
 import { speakAsInvestor } from "../../../lib/speakAsInvestor";
 import Button from "../../Button";
 import InvestorHeadPreview from "./InvestorHeadPreview";
@@ -46,12 +47,12 @@ export default function InvestorPreviewModal({ investor, onClose, onStartBattle 
           </button>
 
           <div className="h-48 w-48">
-            <InvestorHeadPreview meshConfig={investor.meshConfig} />
+            <InvestorHeadPreview investorId={investor.id} />
           </div>
 
           <div>
             <h2 className="font-display text-2xl font-bold text-white">{investor.name}</h2>
-            <p className="text-sm font-semibold uppercase tracking-wide" style={{ color: investor.meshConfig.color }}>
+            <p className="text-sm font-semibold uppercase tracking-wide" style={{ color: getInvestorColor(investor) }}>
               {investor.archetype}
             </p>
           </div>

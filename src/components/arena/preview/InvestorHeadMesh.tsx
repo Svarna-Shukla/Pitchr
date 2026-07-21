@@ -5,29 +5,27 @@ import type { EyeStyle, MeshConfig, MeshShape } from "../../../types/investor";
 
 type Props = { meshConfig: MeshConfig };
 
-// Builds the base low-poly wireframe geometry for one investor's head shape. Dodecahedron gets a
-// small deterministic per-vertex jitter so it reads as the "asymmetrical" wildcard shape rather than
-// a perfectly regular solid — seeded off the vertex index so it's stable across re-renders.
+// Builds the base wireframe geometry for one investor's head shape. Icosahedron (Wildcard) gets each
+// vertex pushed outward by a deterministic random amount so it reads as an unpredictable, spiky burst
+// rather than a perfectly regular solid — seeded off the vertex index so it's stable across re-renders.
 function buildGeometry(shape: MeshShape): THREE.BufferGeometry {
   switch (shape) {
-    case "pentagon":
-      return new THREE.ConeGeometry(1, 1.4, 5);
-    case "icosahedron":
-      return new THREE.IcosahedronGeometry(1.1, 0);
-    case "pyramid":
-      return new THREE.ConeGeometry(0.95, 1.7, 4);
-    case "dodecahedron": {
-      const geo = new THREE.DodecahedronGeometry(1.05, 0);
+    case "octahedron":
+      return new THREE.OctahedronGeometry(1.2, 0);
+    case "box":
+      return new THREE.BoxGeometry(0.95, 1.9, 0.95);
+    case "icosahedron": {
+      const geo = new THREE.IcosahedronGeometry(1.05, 0);
       const pos = geo.attributes.position;
       for (let i = 0; i < pos.count; i++) {
-        const jitter = (n: number) => n + Math.sin(i * 12.9898) * 0.07;
-        pos.setXYZ(i, jitter(pos.getX(i)), jitter(pos.getY(i)), jitter(pos.getZ(i)));
+        const spike = 1 + Math.abs(Math.sin(i * 12.9898)) * 0.55;
+        pos.setXYZ(i, pos.getX(i) * spike, pos.getY(i) * spike, pos.getZ(i) * spike);
       }
       geo.computeVertexNormals();
       return geo;
     }
-    case "sphere":
-      return new THREE.IcosahedronGeometry(1.1, 2);
+    case "torusKnot":
+      return new THREE.TorusKnotGeometry(0.65, 0.24, 64, 8);
   }
 }
 
