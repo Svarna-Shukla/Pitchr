@@ -14,8 +14,15 @@ type MaskRefs = {
 // Drives every frame of the mask's pose animation: body lean/scale/tilt, idle sway/bob, eye glow
 // color+intensity, and the mouth slit's open amount. The mouth pulses while `isTalking` — the mask is
 // asking a question ("speaking"), or the judgment line is actually playing via Web Speech Synthesis —
-// and settles back to the state's idle slit shape the instant that stops.
-export function useMaskAnimation(state: MaskState, intensity: number, isSpeaking: boolean, refs: MaskRefs) {
+// and settles back to the state's idle slit shape the instant that stops. `eyeColor` lets each
+// investor's mask glow its own signature color instead of Tai Lung's fixed orange.
+export function useMaskAnimation(
+  state: MaskState,
+  intensity: number,
+  isSpeaking: boolean,
+  refs: MaskRefs,
+  eyeColor: string = "#FF4500"
+) {
   const clock = useRef(0);
 
   useFrame((_, delta) => {
@@ -43,11 +50,11 @@ export function useMaskAnimation(state: MaskState, intensity: number, isSpeaking
       mouth.current.rotation.z = THREE.MathUtils.lerp(mouth.current.rotation.z, targetTiltZ, lerp);
     }
 
-    const eyeColor = new THREE.Color("#FF4500").lerp(new THREE.Color("#ffffff"), t.hot);
+    const hotEyeColor = new THREE.Color(eyeColor).lerp(new THREE.Color("#ffffff"), t.hot);
     for (const mat of eyeMats.current) {
       if (!mat) continue;
       mat.emissiveIntensity = THREE.MathUtils.lerp(mat.emissiveIntensity, t.eye, lerp);
-      mat.emissive.lerp(eyeColor, lerp);
+      mat.emissive.lerp(hotEyeColor, lerp);
     }
     if (backingMat.current) backingMat.current.emissiveIntensity = THREE.MathUtils.lerp(backingMat.current.emissiveIntensity, 1.1 + t.eye * 0.25, lerp);
   });

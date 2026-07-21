@@ -16,9 +16,8 @@ function NoWebGLFallback({ color }: { color: string }) {
   );
 }
 
-// Sizeable, self-contained 3D preview: one investor's rotating head (their dedicated ArenaMask for Tai
-// Lung, or their wireframe InvestorHeadMesh for everyone else), gated behind a WebGL availability check
-// like the hero/arena masks. Used inside InvestorPreviewModal.
+// Sizeable, self-contained 3D preview: one investor's own dedicated, hand-sculpted mask, gated behind
+// a WebGL availability check like the hero/arena masks. Used inside InvestorPreviewModal.
 export default function InvestorHeadPreview({ investorId }: Props) {
   const fallbackColor = getInvestorColor(getInvestorProfile(investorId));
   if (!isWebGLAvailable()) return <NoWebGLFallback color={fallbackColor} />;

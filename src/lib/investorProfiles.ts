@@ -34,7 +34,14 @@ export const INVESTOR_PROFILES: PersonalityConfig[] = [
       weak: ["Your CAC is weak. Your pitch is weaker.", "Pathetic. This battle is already over."],
       timeout: ["Silence is not an answer.", "You hesitate. I win."],
     },
-    // No meshConfig — Tai Lung renders via the dedicated ArenaMask geometry instead.
+    maskTheme: {
+      baseColor: "#1a1a1a",
+      glowColor: "#f97316",
+      eyeColor: "#ff9a4d",
+      pointLightColor: "#ff4500",
+      ambientColor: "#0f172a",
+      particleColors: ["#f97316", "#fbbf24"],
+    },
   },
   {
     id: "mentor",
@@ -52,7 +59,14 @@ export const INVESTOR_PROFILES: PersonalityConfig[] = [
       weak: ["I think there's a gap here worth addressing.", "Let's be honest with each other on this one."],
       timeout: ["Take your time — but I do need an answer.", "No worries, but let's come back to this."],
     },
-    meshConfig: { shape: "torusKnot", color: "#10B981", eyeStyle: "soft-oval", rotationSpeed: 0.008 },
+    maskTheme: {
+      baseColor: "#1c1917",
+      glowColor: "#10b981",
+      eyeColor: "#34d399",
+      pointLightColor: "#059669",
+      ambientColor: "#f59e0b",
+      particleColors: ["#10b981", "#f59e0b"],
+    },
   },
   {
     id: "mogul",
@@ -70,7 +84,14 @@ export const INVESTOR_PROFILES: PersonalityConfig[] = [
       weak: ["This wouldn't clear our board.", "Weak unit economics."],
       timeout: ["Time is money you don't have.", "My board doesn't wait."],
     },
-    meshConfig: { shape: "box", color: "#A855F7", eyeStyle: "narrow", rotationSpeed: 0.003 },
+    maskTheme: {
+      baseColor: "#121212",
+      glowColor: "#a855f7",
+      eyeColor: "#c084fc",
+      pointLightColor: "#9333ea",
+      ambientColor: "#e2e8f0",
+      particleColors: ["#d946ef", "#eab308"],
+    },
   },
   {
     id: "wildcard",
@@ -88,7 +109,14 @@ export const INVESTOR_PROFILES: PersonalityConfig[] = [
       weak: ["Yeah, no, that's a hard pass.", "That imploded fast."],
       timeout: ["Plot twist: you said nothing.", "Didn't see that non-answer coming."],
     },
-    meshConfig: { shape: "icosahedron", color: "#FF007F", eyeStyle: "offset", rotationSpeed: 0.015, erratic: true },
+    maskTheme: {
+      baseColor: "#262626",
+      glowColor: "#ff007f",
+      eyeColor: "#84cc16",
+      pointLightColor: "#ff0055",
+      ambientColor: "#22c55e",
+      particleColors: ["#ff0055", "#22c55e"],
+    },
   },
   {
     id: "techbro",
@@ -106,22 +134,25 @@ export const INVESTOR_PROFILES: PersonalityConfig[] = [
       weak: ["Bro, that's not a business model.", "Zero moat. Hard pass."],
       timeout: ["Silence isn't a growth strategy.", "You froze. Not a good look."],
     },
-    meshConfig: { shape: "octahedron", color: "#00F0FF", eyeStyle: "visor", rotationSpeed: 0.02 },
+    maskTheme: {
+      baseColor: "#09090b",
+      glowColor: "#00f0ff",
+      eyeColor: "#00f0ff",
+      pointLightColor: "#00d8f6",
+      ambientColor: "#3b0764",
+      particleColors: ["#00f0ff", "#38bdf8"],
+    },
   },
 ];
-
-// Tai Lung's signature glow — used wherever his ArenaMask geometry stands in for a meshConfig.color
-export const TAI_LUNG_GLOW = "#FF4500";
 
 // Looks up an investor's full profile by id, falling back to Tai Lung (the default) if somehow unset
 export function getInvestorProfile(id: PersonalityId | null): PersonalityConfig {
   return INVESTOR_PROFILES.find((p) => p.id === id) ?? INVESTOR_PROFILES[0];
 }
 
-// The color that represents this investor visually — their meshConfig color, or Tai Lung's signature
-// glow for the one investor who has no meshConfig (he uses the ArenaMask geometry instead)
+// The color that represents this investor visually — their mask theme's panel-crack glow color
 export function getInvestorColor(investor: PersonalityConfig): string {
-  return investor.meshConfig?.color ?? TAI_LUNG_GLOW;
+  return investor.maskTheme.glowColor;
 }
 
 // Picks a random short canned line for the given investor + answer tier, used for spoken feedback
