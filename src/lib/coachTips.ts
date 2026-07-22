@@ -22,7 +22,7 @@ const INVESTOR_TIPS: Record<PersonalityId, string[]> = {
     "Never hedge with Lord Vane — a flat, certain answer lands better than a hesitant strong one.",
   ],
   mentor: [
-    "Arthur is rooting for you, but don't coast on the warmth — back claims with a real number.",
+    "Sensei is rooting for you, but don't coast on the warmth — back claims with a real number.",
     "He wants to hear how you'd handle the hard case, not just the happy path.",
   ],
   mogul: [
@@ -30,7 +30,7 @@ const INVESTOR_TIPS: Record<PersonalityId, string[]> = {
     "She's timing you. If you can say it in one sentence, don't stretch it to three.",
   ],
   wildcard: [
-    "Expect a curveball from Professor Zany — bridge back to your core thesis instead of chasing it.",
+    "Expect a curveball from Dr. Quirk — bridge back to your core thesis instead of chasing it.",
     "A little humor lands with him, but always close on a concrete, real answer.",
   ],
   techbro: [

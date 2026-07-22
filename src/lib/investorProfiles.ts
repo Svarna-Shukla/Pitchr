@@ -46,7 +46,7 @@ export const INVESTOR_PROFILES: PersonalityConfig[] = [
   },
   {
     id: "mentor",
-    name: "Arthur Pendelton",
+    name: "Sensei Sterling",
     archetype: "The Gentle Mentor",
     description: "A patient, supportive investor who genuinely wants you to win — but won't let you skate past the hard questions.",
     greetingText: "It sounds like you're passionate! But tell me... aren't you worried Google copies this next week?",
@@ -98,7 +98,7 @@ export const INVESTOR_PROFILES: PersonalityConfig[] = [
   },
   {
     id: "wildcard",
-    name: "Professor Zany",
+    name: "Dr. Quirk",
     archetype: "The Chaotic Wildcard",
     description: "One question he's hyping you to the moon, the next he's asking what happens when a meteor hits your headquarters.",
     greetingText: "If a meteor hits your headquarters tomorrow, how does this business model survive?",
