@@ -42,6 +42,7 @@ export const INVESTOR_PROFILES: PersonalityConfig[] = [
       ambientColor: "#0f172a",
       particleColors: ["#f97316", "#fbbf24"],
     },
+    fallbackVoice: { pitch: 0.88, rate: 0.93 },
   },
   {
     id: "mentor",
@@ -67,6 +68,7 @@ export const INVESTOR_PROFILES: PersonalityConfig[] = [
       ambientColor: "#f59e0b",
       particleColors: ["#10b981", "#f59e0b"],
     },
+    fallbackVoice: { pitch: 1.03, rate: 0.94 },
   },
   {
     id: "mogul",
@@ -92,6 +94,7 @@ export const INVESTOR_PROFILES: PersonalityConfig[] = [
       ambientColor: "#e2e8f0",
       particleColors: ["#d946ef", "#eab308"],
     },
+    fallbackVoice: { pitch: 0.9, rate: 0.95 },
   },
   {
     id: "wildcard",
@@ -117,6 +120,7 @@ export const INVESTOR_PROFILES: PersonalityConfig[] = [
       ambientColor: "#22c55e",
       particleColors: ["#ff0055", "#22c55e"],
     },
+    fallbackVoice: { pitch: 1.08, rate: 0.95 },
   },
   {
     id: "techbro",
@@ -142,6 +146,7 @@ export const INVESTOR_PROFILES: PersonalityConfig[] = [
       ambientColor: "#3b0764",
       particleColors: ["#00f0ff", "#38bdf8"],
     },
+    fallbackVoice: { pitch: 1.05, rate: 0.95 },
   },
 ];
 

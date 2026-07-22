@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { speakDeep } from "../lib/voicePicker";
+import { NATURAL_DEFAULT_VOICE, speakDeep } from "../lib/voicePicker";
 
 const STORAGE_KEY = "pitchr:voice-enabled";
 
@@ -12,9 +12,9 @@ function readEnabled(): boolean {
   }
 }
 
-// Wraps the browser's Web Speech Synthesis API so the investor can speak short judgment lines aloud,
-// deep, slow, and menacing rather than the browser's default high-pitched voice. Voice picking and
-// the actual SpeechSynthesisUtterance mechanics live in lib/voicePicker.ts, shared with every
+// Wraps the browser's Web Speech Synthesis API so the investor can speak short judgment lines aloud
+// through the most natural voice available, rather than the browser's flat default. Voice picking
+// and the actual SpeechSynthesisUtterance mechanics live in lib/voicePicker.ts, shared with every
 // investor's ElevenLabs fallback delivery in lib/speakAsInvestor.ts.
 export function useSpeechSynthesis() {
   const [enabled, setEnabled] = useState(readEnabled);
@@ -45,11 +45,11 @@ export function useSpeechSynthesis() {
     });
   }, []);
 
-  // Speaks a short phrase aloud, deep and slow; no-ops if disabled
+  // Speaks a short phrase aloud in a natural, unhurried delivery; no-ops if disabled
   const speak = useCallback(
     (text: string) => {
       if (!enabled) return;
-      speakDeep(text, { pitch: 0.5, rate: 0.75, onStart: () => setIsSpeaking(true), onEnd: () => setIsSpeaking(false) });
+      speakDeep(text, { ...NATURAL_DEFAULT_VOICE, onStart: () => setIsSpeaking(true), onEnd: () => setIsSpeaking(false) });
     },
     [enabled]
   );

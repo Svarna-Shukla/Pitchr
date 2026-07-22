@@ -1,10 +1,10 @@
-import { speakDeep } from "./voicePicker";
+import { NATURAL_DEFAULT_VOICE, speakDeep } from "./voicePicker";
+import type { FallbackVoice } from "../types/investor";
 
-// Generic fallback delivery used when ElevenLabs is unavailable for whichever investor is
-// speaking — noticeably deeper/slower than the browser default so it still reads as an investor
-// grilling the founder rather than a generic screen-reader voice.
-const FALLBACK_PITCH = 0.5;
-const FALLBACK_RATE = 0.78;
+// Used when ElevenLabs is unavailable and the caller hasn't supplied this investor's own
+// pitch/rate (see PersonalityConfig.fallbackVoice) — a neutral, natural delivery rather than a
+// generic screen-reader voice.
+const DEFAULT_FALLBACK_VOICE: FallbackVoice = NATURAL_DEFAULT_VOICE;
 
 const ELEVENLABS_TTS_URL = "https://api.elevenlabs.io/v1/text-to-speech";
 
@@ -95,25 +95,32 @@ async function speakWithElevenLabs(text: string, voiceId: string): Promise<boole
 
 // Speaks a line aloud as whichever investor is currently active, in that investor's own cloned
 // ElevenLabs voice — used for attack questions, judgment reactions, and the preview modal's voice
-// sample alike. Falls back to the browser's speechSynthesis voice if the API key or this investor's
-// voice ID isn't configured, or if the ElevenLabs request fails.
-export async function speakAsInvestor(text: string, voiceId?: string): Promise<void> {
+// sample alike. Falls back to the browser's speechSynthesis voice (in this investor's own
+// pitch/rate, or a neutral default if none was given) if the API key or this investor's voice ID
+// isn't configured, or if the ElevenLabs request fails.
+export async function speakAsInvestor(text: string, voiceId?: string, fallbackVoice?: FallbackVoice): Promise<void> {
+  const delivery = fallbackVoice ?? DEFAULT_FALLBACK_VOICE;
   try {
     const spoke = await speakWithElevenLabs(text, voiceId ?? "");
-    if (!spoke) speakDeep(text, { pitch: FALLBACK_PITCH, rate: FALLBACK_RATE });
+    if (!spoke) speakDeep(text, delivery);
   } catch (err) {
     console.error("[speakAsInvestor] speakAsInvestor failed unexpectedly, falling back to speechSynthesis", err);
-    speakDeep(text, { pitch: FALLBACK_PITCH, rate: FALLBACK_RATE });
+    speakDeep(text, delivery);
   }
 }
 
 // Engine-aware variant used by the Arena header's "HD Voice / Fast Voice" toggle. "fast" never
 // touches the network — it goes straight to window.speechSynthesis so no ElevenLabs characters are
 // ever burned, which matters most in "The Ultimate Tank" where 5 investors can each speak every round.
-export async function speakInvestorLine(text: string, voiceId: string | undefined, engine: "hd" | "fast"): Promise<void> {
+export async function speakInvestorLine(
+  text: string,
+  voiceId: string | undefined,
+  engine: "hd" | "fast",
+  fallbackVoice?: FallbackVoice
+): Promise<void> {
   if (engine === "fast") {
-    speakDeep(text, { pitch: FALLBACK_PITCH, rate: FALLBACK_RATE });
+    speakDeep(text, fallbackVoice ?? DEFAULT_FALLBACK_VOICE);
     return;
   }
-  return speakAsInvestor(text, voiceId);
+  return speakAsInvestor(text, voiceId, fallbackVoice);
 }

@@ -98,7 +98,9 @@ export function useBattleArena() {
   // start/playRound), so this fires exactly once per attack.
   useEffect(() => {
     if (phase === "attacking" && personality && voice.enabled && pitcherator.currentQuestion) {
-      speakInvestorLine(pitcherator.currentQuestion, personality.voiceId, voiceEngine.engine).catch(console.error);
+      speakInvestorLine(pitcherator.currentQuestion, personality.voiceId, voiceEngine.engine, personality.fallbackVoice).catch(
+        console.error
+      );
     }
   }, [phase, personality, voice.enabled, pitcherator.currentQuestion, voiceEngine.engine]);
 
@@ -174,7 +176,8 @@ export function useBattleArena() {
       // Every investor's reaction line goes through their own cloned ElevenLabs voice (or the browser
       // native fallback under Fast Voice), matching the attack question above
       const line = pickVoiceLine(activeInvestor, result.tier);
-      if (voice.enabled) speakInvestorLine(line, activeInvestor.voiceId, voiceEngine.engine).catch(console.error);
+      if (voice.enabled)
+        speakInvestorLine(line, activeInvestor.voiceId, voiceEngine.engine, activeInvestor.fallbackVoice).catch(console.error);
       if (finalHealth <= 0) {
         setPhase("gameover");
       } else {
