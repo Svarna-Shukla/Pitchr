@@ -2,6 +2,8 @@ import { Suspense, lazy } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { MaskState } from "./mask/ArenaMask";
 import type { PersonalityId } from "../../types/investor";
+import ListeningPulseRings from "./ListeningPulseRings";
+import ListeningBadge from "./ListeningBadge";
 
 const BossTankScene = lazy(() => import("./mask/BossTankScene"));
 
@@ -25,13 +27,8 @@ export default function BossMaskStage({ state, attackTrigger, activeInvestorId, 
       animate={{ height: compact ? "20vh" : "56vh", opacity: compact ? 0.35 : 1 }}
       transition={{ duration: 0.6, ease: "easeInOut" }}
     >
-      <div
-        className="pointer-events-none absolute h-[70%] w-[85%] max-w-[900px] rounded-full transition-opacity duration-500"
-        style={{
-          boxShadow: state === "listening" ? "0 0 90px 30px rgba(56,189,248,0.18), inset 0 0 60px 10px rgba(56,189,248,0.12)" : "none",
-          opacity: state === "listening" ? 1 : 0,
-        }}
-      />
+      <ListeningPulseRings active={state === "listening"} wide />
+      <ListeningBadge active={state === "listening"} />
       <div className="h-full w-full max-w-5xl">
         <Suspense fallback={null}>
           <BossTankScene state={state} attackTrigger={attackTrigger} activeInvestorId={activeInvestorId} isSpeaking={isSpeaking} />

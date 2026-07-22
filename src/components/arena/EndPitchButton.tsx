@@ -10,7 +10,7 @@ export default function EndPitchButton({ onClick }: Props) {
   if (confirming) {
     return (
       <div className="fixed bottom-24 right-4 z-[66] flex w-64 flex-col gap-3 rounded-xl border border-white/20 bg-black/90 p-4 text-left backdrop-blur-md md:bottom-4">
-        <p className="text-sm text-white/80">End your pitch session? You will see your scorecard.</p>
+        <p className="text-sm text-white/80">Ready to wrap up? You'll go straight to your scorecard.</p>
         <div className="flex gap-2">
           <button
             onClick={() => setConfirming(false)}

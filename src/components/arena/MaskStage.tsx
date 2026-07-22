@@ -2,6 +2,8 @@ import { Suspense, lazy } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { MaskState } from "./mask/ArenaMask";
 import type { PersonalityId } from "../../types/investor";
+import ListeningPulseRings from "./ListeningPulseRings";
+import ListeningBadge from "./ListeningBadge";
 
 const ArenaMaskScene = lazy(() => import("./mask/ArenaMaskScene"));
 
@@ -29,13 +31,8 @@ export default function MaskStage({ state, attackTrigger, investorId, flash, fla
       animate={{ height: fill ? "100vh" : compact ? "20vh" : "52vh", opacity: compact ? 0.35 : 1 }}
       transition={{ duration: fill ? 1 : 0.6, ease: "easeInOut" }}
     >
-      <div
-        className="pointer-events-none absolute h-[70%] w-[70%] max-w-[520px] rounded-full transition-opacity duration-500"
-        style={{
-          boxShadow: state === "listening" ? "0 0 90px 30px rgba(56,189,248,0.18), inset 0 0 60px 10px rgba(56,189,248,0.12)" : "none",
-          opacity: state === "listening" ? 1 : 0,
-        }}
-      />
+      <ListeningPulseRings active={state === "listening"} />
+      <ListeningBadge active={state === "listening"} />
       <div className="h-full w-full max-w-2xl">
         <Suspense fallback={null}>
           <ArenaMaskScene state={state} attackTrigger={attackTrigger} investorId={investorId} intensity={intensity} isSpeaking={isSpeaking} />

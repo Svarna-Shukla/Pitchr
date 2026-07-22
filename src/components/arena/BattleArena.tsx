@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { useBattleArena } from "../../hooks/useBattleArena";
 import ArenaLayout from "./ArenaLayout";
 import PitchHealthBar from "./PitchHealthBar";
@@ -11,6 +12,8 @@ import MaskStage from "./MaskStage";
 import BossMaskStage from "./BossMaskStage";
 import GameOverOverlay from "./GameOverOverlay";
 import ArenaPhaseContent from "./ArenaPhaseContent";
+import HelpModeToggle from "./coach/HelpModeToggle";
+import CoachTipsPanel from "./coach/CoachTipsPanel";
 
 type Props = {
   arena: ReturnType<typeof useBattleArena>;
@@ -31,6 +34,7 @@ const LIVE_PHASES = ["scanning", "attacking", "response", "judgment"];
 // HUD chrome (health bar, round counter, mask stage) that sits above it.
 export default function BattleArena(props: Props) {
   const { arena } = props;
+  const [helpMode, setHelpMode] = useState(false);
   const isLive = LIVE_PHASES.includes(arena.phase);
   const flash = arena.phase === "judgment" && arena.lastResult ? (arena.lastResult.tier === "strong" ? "green" : "red") : null;
 
@@ -47,6 +51,10 @@ export default function BattleArena(props: Props) {
       {isLive && <EndPitchButton onClick={arena.endPitch} />}
       {isLive && <SpeakerToggle enabled={arena.voiceEnabled} onToggle={arena.toggleVoice} />}
       {arena.phase !== "personality-select" && <VoiceEngineToggle engine={arena.voiceEngine} onToggle={arena.toggleVoiceEngine} />}
+      {isLive && <HelpModeToggle enabled={helpMode} onToggle={() => setHelpMode((v) => !v)} />}
+      {arena.personality && (
+        <CoachTipsPanel investor={arena.personality} roundNumber={arena.roundNumber} visible={helpMode && isLive} />
+      )}
 
       {arena.phase !== "personality-select" && arena.personality && arena.isBossMode && (
         <BossMaskStage
