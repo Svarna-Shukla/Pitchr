@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 import type { PersonalityConfig } from "../../../types/investor";
 import { getInvestorColor } from "../../../lib/investorProfiles";
-import { speakAsInvestor } from "../../../lib/speakAsInvestor";
+import { playInvestorPreview, stopInvestorPreviewAudio } from "../../../lib/investorPreviewAudio";
 import Button from "../../Button";
 import InvestorHeadPreview from "./InvestorHeadPreview";
 
@@ -15,11 +15,15 @@ type Props = { investor: PersonalityConfig; onClose: () => void; onStartBattle: 
 export default function InvestorPreviewModal({ investor, onClose, onStartBattle }: Props) {
   const [isPlaying, setIsPlaying] = useState(false);
 
+  // Stop any preview clip left playing (e.g. the modal was closed mid-clip) so it doesn't keep
+  // playing in the background once this instance unmounts.
+  useEffect(() => stopInvestorPreviewAudio, []);
+
   const playSample = async () => {
     if (isPlaying) return;
     setIsPlaying(true);
     try {
-      await speakAsInvestor(investor.greetingText, investor.voiceId);
+      await playInvestorPreview(investor.id);
     } finally {
       setIsPlaying(false);
     }
