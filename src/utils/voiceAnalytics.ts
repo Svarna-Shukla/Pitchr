@@ -53,3 +53,6 @@ export function summarizeVoiceDelivery(rounds: VoiceAnalytics[]): VoiceDeliveryS
   const authorityScore = Math.round(rounds.reduce((sum, r) => sum + r.confidenceScore, 0) / rounds.length);
   return { totalFillerCount, fillerBreakdown, averageWpm, paceTag: paceTagForWpm(averageWpm), authorityScore, roundsAnalyzed: rounds.length };
 }
+
+
+// USED TO GIVE THE CONFIDENCE RATING AND FILLER WORDS COUNT
