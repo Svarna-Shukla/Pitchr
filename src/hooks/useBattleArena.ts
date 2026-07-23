@@ -4,7 +4,7 @@ import type { AnswerTier, ArenaRound, BattlePhase } from "../types/arena";
 import type { VoiceAnalytics } from "../types/voice";
 import type { PersonalityConfig, PersonalityId } from "../types/investor";
 import { getInvestorProfile, pickVoiceLine } from "../lib/investorProfiles";
-import { speakInvestorLine } from "../lib/speakAsInvestor";
+import { speakInvestorLine, stopInvestorVoice } from "../lib/speakAsInvestor";
 import { savePitchResult } from "../lib/pitchHistory";
 import { combinedGrade, overallScore } from "../lib/scoring";
 import { aggregateBossDamage, pickNextBossInvestor } from "../lib/bossMode";
@@ -114,6 +114,20 @@ export function useBattleArena() {
     if (pitcherator.failed && phase === "scanning") setPhase("input");
   }, [pitcherator.failed, phase]);
 
+  // Hard safety net: the instant either fighter's health reaches zero during a live round, force an
+  // immediate transition to game over. submitAnswer already does this inline for the common path (a
+  // judged answer), but this effect also covers any other way health could land at zero mid-session,
+  // and guarantees no investor audio survives into the game-over screen
+  useEffect(() => {
+    const isLivePhase = phase === "scanning" || phase === "attacking" || phase === "response" || phase === "judgment";
+    if (!isLivePhase) return;
+    if (health.founderHealth <= 0 || health.investorHealth <= 0) {
+      stopInvestorVoice();
+      setIsAISpeaking(false);
+      setPhase("gameover");
+    }
+  }, [phase, health.founderHealth, health.investorHealth]);
+
   // Picks the investor personality for this session and moves to pitch intake
   const selectPersonality = useCallback((id: PersonalityId) => {
     setIsBossMode(false);
@@ -156,7 +170,7 @@ export function useBattleArena() {
   // asks the next question, in their own tone and voice, so "who's speaking" genuinely changes turn to turn.
   const submitAnswer = useCallback(
     async (text: string, isTimeout = false, voiceAnalytics?: VoiceAnalytics) => {
-      if (!personality) return;
+      if (!personality || phase === "gameover") return;
       const question = pitcherator.currentQuestion;
       const nextRoundNumber = roundNumber + 1;
       const activeInvestor = isBossMode ? pickNextBossInvestor(personality.id) : personality;
@@ -178,6 +192,14 @@ export function useBattleArena() {
       };
       setRounds((r) => [...r, round]);
       setLastResult({ tier: result.tier, reaction: result.reaction });
+      if (finalHealth <= 0) {
+        // Session's over on this blow — don't let a reaction line start (or let one already in
+        // flight, e.g. the attack question, keep talking) under the game-over screen
+        stopInvestorVoice();
+        setIsAISpeaking(false);
+        setPhase("gameover");
+        return;
+      }
       // Every investor's reaction line goes through their own cloned ElevenLabs voice (or the browser
       // native fallback under Fast Voice), matching the attack question above
       const line = pickVoiceLine(activeInvestor, result.tier);
@@ -186,17 +208,13 @@ export function useBattleArena() {
           onStart: () => setIsAISpeaking(true),
           onEnd: () => setIsAISpeaking(false),
         }).catch(console.error);
-      if (finalHealth <= 0) {
-        setPhase("gameover");
-      } else {
-        setRoundNumber(nextRoundNumber);
-        window.setTimeout(() => {
-          attackTrigger.current += 1;
-          setPhase("attacking");
-        }, JUDGMENT_DISPLAY_MS);
-      }
+      setRoundNumber(nextRoundNumber);
+      window.setTimeout(() => {
+        attackTrigger.current += 1;
+        setPhase("attacking");
+      }, JUDGMENT_DISPLAY_MS);
     },
-    [pitcherator, health, personality, isBossMode, rounds, roundNumber, voice, voiceEngine.engine]
+    [pitcherator, health, personality, isBossMode, rounds, roundNumber, voice, voiceEngine.engine, phase]
   );
 
   // Voluntarily ends the pitch, generating the full scorecard from every round played

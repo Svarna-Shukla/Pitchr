@@ -130,6 +130,15 @@ export async function speakAsInvestor(
   }
 }
 
+// Immediately halts whatever investor line is currently playing — either the ElevenLabs audio or the
+// browser speechSynthesis fallback. Used to hard-cut a mid-line investor voice the instant the arena
+// needs it silenced, e.g. the session ending in game over.
+export function stopInvestorVoice(): void {
+  currentAudio?.pause();
+  currentAudio = null;
+  if (typeof window !== "undefined" && window.speechSynthesis) window.speechSynthesis.cancel();
+}
+
 // Engine-aware variant used by the Arena header's "HD Voice / Fast Voice" toggle. "fast" never
 // touches the network — it goes straight to window.speechSynthesis so no ElevenLabs characters are
 // ever burned, which matters most in "The Ultimate Tank" where 5 investors can each speak every round.
